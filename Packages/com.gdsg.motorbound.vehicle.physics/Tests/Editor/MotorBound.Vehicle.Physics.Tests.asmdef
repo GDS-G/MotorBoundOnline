@@ -1,0 +1,25 @@
+{
+  "name": "MotorBound.Vehicle.Physics.Tests",
+  "rootNamespace": "MotorBound.Vehicle.Physics.Tests",
+  "references": [
+    "MotorBound.Foundation",
+    "MotorBound.Vehicle.Core",
+    "MotorBound.Vehicle.Physics"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "MotorBound.Vehicle.Physics",
+  "rootNamespace": "MotorBound.Vehicle.Physics",
+  "references": [
+    "MotorBound.Foundation",
+    "MotorBound.Vehicle.Core"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

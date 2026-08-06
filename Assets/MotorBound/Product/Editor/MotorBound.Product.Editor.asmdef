@@ -1,0 +1,18 @@
+{
+  "name": "MotorBound.Product.Editor",
+  "rootNamespace": "MotorBound.Editor",
+  "references": [
+    "MotorBound.Product"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

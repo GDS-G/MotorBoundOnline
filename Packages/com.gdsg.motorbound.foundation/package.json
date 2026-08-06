@@ -1,0 +1,10 @@
+{
+  "name": "com.gdsg.motorbound.foundation",
+  "version": "0.1.0",
+  "displayName": "MotorBound Foundation",
+  "description": "Stable identifiers, SI units, validation primitives, and deterministic utilities shared by MotorBound products.",
+  "unity": "2022.3",
+  "author": {
+    "name": "GDS-G"
+  }
+}

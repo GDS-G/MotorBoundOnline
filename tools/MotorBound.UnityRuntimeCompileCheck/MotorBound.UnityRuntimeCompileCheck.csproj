@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <UnityManagedPath Condition="'$(UnityManagedPath)' == ''">C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Data\Managed</UnityManagedPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\Packages\com.gdsg.motorbound.foundation\Runtime\**\*.cs" Link="Foundation\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\..\Packages\com.gdsg.motorbound.vehicle.core\Runtime\**\*.cs" Link="Vehicle.Core\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\..\Packages\com.gdsg.motorbound.vehicle.physics\Runtime\**\*.cs" Link="Vehicle.Physics\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\..\Packages\com.gdsg.motorbound.foundation\Tests\Editor\**\*.cs" Link="Tests\Foundation\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\..\Packages\com.gdsg.motorbound.vehicle.core\Tests\Editor\**\*.cs" Link="Tests\Vehicle.Core\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\..\Packages\com.gdsg.motorbound.vehicle.physics\Tests\Editor\**\*.cs" Link="Tests\Vehicle.Physics\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\..\Assets\MotorBound\Product\Runtime\**\*.cs" Link="Product\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\..\Assets\MotorBound\Product\Editor\**\*.cs" Link="Product.Editor\%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="UnityEngine">
+      <HintPath>$(UnityManagedPath)\UnityEngine\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(UnityManagedPath)\UnityEngine\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>$(UnityManagedPath)\UnityEngine\UnityEngine.PhysicsModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>$(UnityManagedPath)\UnityEngine\UnityEngine.InputLegacyModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>$(UnityManagedPath)\UnityEngine\UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>$(UnityManagedPath)\UnityEngine\UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEditor">
+      <HintPath>$(UnityManagedPath)\UnityEditor.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="nunit.framework">
+      <HintPath>$(LocalAppData)\Unity\cache\packages\packages.unity.com\com.unity.ext.nunit@1.0.6\net35\unity-custom\nunit.framework.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+</Project>

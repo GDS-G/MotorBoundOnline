@@ -1,0 +1,37 @@
+# Unity generated directories
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+[Rr]ecordings/
+**/[Bb]in/
+**/[Oo]bj/
+
+# IDE and editor state
+.vs/
+.vscode/
+.idea/
+*.csproj
+!tools/**/*.csproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.opendb
+*.VC.db
+
+# Unity-generated crash and test artifacts
+sysinfo.txt
+TestResults/
+test-results/
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
