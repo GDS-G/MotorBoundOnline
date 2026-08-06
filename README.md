@@ -2,7 +2,7 @@
 
 MotorBound Online is a persistent automotive-world simulation built around mechanical consequence, physical travel, unique property ownership, and a living player economy.
 
-This repository currently contains the first engineering prototype: a playable rear-wheel-drive Kiyora Aven test vehicle with custom raycast suspension and tire-force simulation. It intentionally does not use Unity `WheelCollider`.
+This repository currently contains the first engineering prototype: a playable rear-wheel-drive Kiyora Aven test vehicle with a 360 Hz critical-vehicle step, tire-width contact sampling, layered water/roughness surface state, and a custom tire-force simulation. It intentionally does not use Unity `WheelCollider`.
 
 ## Open the prototype
 
@@ -20,12 +20,12 @@ Controls:
 - `Backspace`: recover the vehicle
 - `F1`: toggle telemetry/help
 
-The course includes a skidpad, a low-grip wet section, lane markers, and obstacles for early handling validation.
+The course includes a skidpad, a 2.5 mm water-film section, a physical rough-road strip, lane markers, and obstacles for early handling validation.
 
 ## Repository layout
 
 - `Packages/com.gdsg.motorbound.foundation`: stable identity, SI units, and deterministic utilities.
-- `Packages/com.gdsg.motorbound.vehicle.core`: data-driven vehicle and powertrain definitions.
+- `Packages/com.gdsg.motorbound.vehicle.core`: layered vehicle identities, physical fitment validation, and data-driven powertrain definitions.
 - `Packages/com.gdsg.motorbound.vehicle.physics`: tire-force math and the Unity vehicle prototype.
 - `Assets/MotorBound/Product`: product composition, procedural scene bootstrap, camera, and HUD.
 - `docs`: architecture, decisions, research brief, and milestone notes.

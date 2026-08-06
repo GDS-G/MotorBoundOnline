@@ -19,6 +19,9 @@ internal static class Program
             VerifyTorqueInterpolation();
             VerifyTireEnvelope();
             VerifyWetGripReduction();
+            VerifyArchitectureIdentity();
+            VerifyFitmentPipeline();
+            VerifyWaterFilmResponse();
 
             foreach (var result in Results)
             {
@@ -90,6 +93,44 @@ internal static class Program
         var wet = TireForceModel.Evaluate(CreateTireInput(1d, 0d, 0.58d));
         Require(wet.MaximumCombinedForceNewtons < dry.MaximumCombinedForceNewtons, "Wet surface did not reduce peak tire force.");
         Results.Add("wet-surface grip reduction");
+    }
+
+    private static void VerifyArchitectureIdentity()
+    {
+        var definition = ReferenceVehicleCatalog.CreateKiyoraAvenClubPrototype();
+        Require(!definition.Architecture.PlatformId.IsEmpty, "Reference vehicle has no platform identity.");
+        Require(!definition.Architecture.TrimManifestId.IsEmpty, "Reference vehicle has no trim-manifest identity.");
+        Results.Add("layered vehicle architecture identity");
+    }
+
+    private static void VerifyFitmentPipeline()
+    {
+        var result = FitmentValidator.Evaluate(
+            ReferenceVehicleCatalog.CreateKiyoraAvenClubFitmentContext(),
+            ReferenceVehicleCatalog.CreateKiyoraAvenReferenceFrontWheelFitment());
+        Require(result.Classification == FitmentClassification.BoltIn, "Reference front wheel is not classified bolt-in.");
+        Require(result.Checks.Length == 10, "Fitment pipeline did not execute all ten stages.");
+        Results.Add("ten-stage physical fitment pipeline");
+    }
+
+    private static void VerifyWaterFilmResponse()
+    {
+        var dry = SurfaceConditionModel.Evaluate(CreateSurfaceInput(0d));
+        var standingWater = SurfaceConditionModel.Evaluate(CreateSurfaceInput(4d));
+        Require(standingWater.EffectiveGripMultiplier < dry.EffectiveGripMultiplier, "Standing water did not reduce effective grip.");
+        Results.Add("speed-sensitive water-film response");
+    }
+
+    private static SurfaceConditionInput CreateSurfaceInput(double waterDepthMillimeters)
+    {
+        return new SurfaceConditionInput
+        {
+            BaseGripMultiplier = 1d,
+            WaterFilmDepthMillimeters = waterDepthMillimeters,
+            VehicleSpeedMetersPerSecond = 30d,
+            TireWaterEvacuationFactor = 0.6d,
+            RoughnessFactor = 0d
+        };
     }
 
     private static TireForceInput CreateTireInput(double slipRatio, double slipAngle, double surfaceGrip)

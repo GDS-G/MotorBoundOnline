@@ -2,7 +2,7 @@
   "name": "com.gdsg.motorbound.vehicle.core",
   "version": "0.1.0",
   "displayName": "MotorBound Vehicle Core",
-  "description": "Data-driven vehicle identity, powertrain, dimensions, validation, and reference catalog definitions.",
+  "description": "Layered vehicle identity, ten-stage physical fitment, powertrain, dimensions, validation, and reference catalog definitions.",
   "unity": "2022.3",
   "dependencies": {
     "com.gdsg.motorbound.foundation": "0.1.0"

@@ -85,6 +85,9 @@ namespace MotorBound.Vehicle.Core
     public sealed class TireDefinition
     {
         public double UnloadedRadiusMeters = 0.305d;
+        public double SectionWidthMeters = 0.205d;
+        public int ContactPatchSampleCount = 3;
+        public double TreadWaterEvacuationFactor = 0.65d;
         public double RotationalInertiaKilogramMetersSquared = 1.15d;
         public double PeakDryFrictionCoefficient = 1.08d;
         public double LongitudinalSlipStiffnessNewtonPerRatio = 80000d;
@@ -120,6 +123,7 @@ namespace MotorBound.Vehicle.Core
         public string Manufacturer = string.Empty;
         public string Family = string.Empty;
         public string Trim = string.Empty;
+        public VehicleArchitectureIdentity Architecture = new VehicleArchitectureIdentity();
         public DriveLayout DriveLayout = DriveLayout.RearWheelDrive;
         public double MassKilograms = 1120d;
         public double WheelbaseMeters = 2.35d;
@@ -146,6 +150,7 @@ namespace MotorBound.Vehicle.Core
             Require(!DefinitionId.IsEmpty, "definitionId", "A stable definition ID is required.", issues);
             Require(!string.IsNullOrWhiteSpace(Manufacturer), "manufacturer", "Manufacturer is required.", issues);
             Require(!string.IsNullOrWhiteSpace(Family), "family", "Vehicle family is required.", issues);
+            Require(Architecture != null, "architecture", "Vehicle architecture identity is required.", issues);
             Require(DefinitionVersion > 0, "definitionVersion", "Definition version must be positive.", issues);
             Require(MassKilograms > 100d, "massKilograms", "Mass must be greater than 100 kg.", issues);
             Require(WheelbaseMeters > 0.5d, "wheelbaseMeters", "Wheelbase must be greater than 0.5 m.", issues);
@@ -155,6 +160,14 @@ namespace MotorBound.Vehicle.Core
             Require(Tire != null, "tire", "Tire definition is required.", issues);
             Require(Suspension != null, "suspension", "Suspension definition is required.", issues);
             Require(Brakes != null, "brakes", "Brake definition is required.", issues);
+
+            if (Architecture != null)
+            {
+                foreach (var issue in Architecture.Validate())
+                {
+                    issues.Add(issue);
+                }
+            }
 
             if (Engine != null)
             {
@@ -184,6 +197,17 @@ namespace MotorBound.Vehicle.Core
             if (Tire != null)
             {
                 Require(Tire.UnloadedRadiusMeters > 0.1d, "tire.unloadedRadiusMeters", "Tire radius must exceed 0.1 m.", issues);
+                Require(Tire.SectionWidthMeters > 0.05d, "tire.sectionWidthMeters", "Tire section width must exceed 0.05 m.", issues);
+                Require(
+                    Tire.ContactPatchSampleCount > 0 && Tire.ContactPatchSampleCount <= 5 && Tire.ContactPatchSampleCount % 2 == 1,
+                    "tire.contactPatchSampleCount",
+                    "Contact-patch sampling must use one, three, or five rays.",
+                    issues);
+                Require(
+                    Tire.TreadWaterEvacuationFactor >= 0d && Tire.TreadWaterEvacuationFactor <= 1d,
+                    "tire.treadWaterEvacuationFactor",
+                    "Water evacuation factor must be in [0, 1].",
+                    issues);
                 Require(Tire.PeakDryFrictionCoefficient > 0d, "tire.peakDryFrictionCoefficient", "Peak friction must be positive.", issues);
             }
 

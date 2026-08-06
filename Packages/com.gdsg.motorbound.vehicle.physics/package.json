@@ -2,7 +2,7 @@
   "name": "com.gdsg.motorbound.vehicle.physics",
   "version": "0.1.0",
   "displayName": "MotorBound Vehicle Physics",
-  "description": "Custom tire, suspension, drivetrain, rigid-body integration, and telemetry for player vehicles.",
+  "description": "Custom multi-sample tire contact, layered surface state, suspension, drivetrain, 360 Hz rigid-body integration, and telemetry for player vehicles.",
   "unity": "2022.3",
   "dependencies": {
     "com.gdsg.motorbound.foundation": "0.1.0",

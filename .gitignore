@@ -30,6 +30,8 @@
 sysinfo.txt
 TestResults/
 test-results/
+/TestResults*.xml
+/Unity*.log
 
 # OS files
 .DS_Store

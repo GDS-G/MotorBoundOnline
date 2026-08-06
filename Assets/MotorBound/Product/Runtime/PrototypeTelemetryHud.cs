@@ -50,6 +50,11 @@ namespace MotorBound.Product
                 bodyStyle);
             GUILayout.Label(
                 string.Format(
+                    "Critical-vehicle step {0} Hz  |  three-ray contact patch target",
+                    telemetry.SimulationFrequencyHertz),
+                bodyStyle);
+            GUILayout.Label(
+                string.Format(
                     "Throttle {0:0.00}  Brake {1:0.00}  Steer {2:+0.00;-0.00;0.00}  Handbrake {3:0.00}",
                     telemetry.Input.Throttle,
                     telemetry.Input.Brake,
@@ -71,13 +76,15 @@ namespace MotorBound.Product
                     var wheel = telemetry.Wheels[index];
                     GUILayout.Label(
                         string.Format(
-                            "{0} {1,-12} grip {2:0.00}  load {3,5:0} N  slip {4,6:+0.00;-0.00;0.00}  angle {5,6:+0.0;-0.0;0.0} deg",
+                            "{0} {1,-16} grip {2:0.00}  load {3,5:0} N  slip {4,6:+0.00;-0.00;0.00}  angle {5,6:+0.0;-0.0;0.0} deg  rays {6}  water {7:0.0} mm",
                             WheelLabels[index],
                             wheel.SurfaceName ?? "Unknown",
                             wheel.SurfaceGripMultiplier,
                             wheel.NormalLoadNewtons,
                             wheel.SlipRatio,
-                            wheel.SlipAngleDegrees),
+                            wheel.SlipAngleDegrees,
+                            wheel.ContactSampleCount,
+                            wheel.WaterFilmDepthMillimeters),
                         bodyStyle);
                 }
             }

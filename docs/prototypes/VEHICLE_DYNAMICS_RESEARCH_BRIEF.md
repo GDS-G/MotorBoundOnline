@@ -6,9 +6,9 @@ Can a compact, inspectable custom force model provide a credible and controllabl
 
 ## Assumptions
 
-- Four raycast contacts are adequate for the first flat-surface test facility.
+- Three lateral ray samples per tire are an adequate first contact-patch approximation for the Phase 1 facility; this remains replaceable by a swept/contact-volume method.
 - A spring-damper normal force, slip-stiffness tire response, load-sensitive peak friction, and combined-force ellipse are enough to expose meaningful setup and surface differences.
-- A 50 Hz Unity integration step is useful for initial playability; the GDD's proposed 360 Hz target remains an explicit profiling decision.
+- Player/critical-vehicle integration runs at the GDD target of 360 Hz. Profiling must determine fidelity-tier and server budgets before that rate becomes a production guarantee.
 - The Kiyora Aven is an original lightweight rear-drive roadster appropriate for the first reference vehicle.
 
 ## Acceptance criteria
@@ -16,6 +16,9 @@ Can a compact, inspectable custom force model provide a credible and controllabl
 - The vehicle launches, steers, brakes, shifts, and recovers without `WheelCollider`.
 - Longitudinal and lateral forces never exceed the configured friction envelope.
 - Wet surface grip produces a visible telemetry change and a meaningfully longer/slipperier response.
+- Water-film response depends on depth, speed, and tire evacuation capability rather than a single universal wet multiplier.
+- A physical rough-road strip exercises tire-width contact sampling and suspension response.
+- The reference wheel passes all ten fitment stages; overload and pattern conflicts produce exact classifications and remedies.
 - Torque interpolation and definition validation are deterministic and covered by EditMode tests.
 - The Windows player builds without compile errors.
 

@@ -14,6 +14,8 @@ namespace MotorBound.Vehicle.Physics
         public float LongitudinalForceNewtons;
         public float LateralForceNewtons;
         public float SurfaceGripMultiplier;
+        public int ContactSampleCount;
+        public float WaterFilmDepthMillimeters;
         public string SurfaceName;
     }
 
@@ -24,6 +26,7 @@ namespace MotorBound.Vehicle.Physics
         public float SpeedMetersPerSecond;
         public float EngineSpeedRpm;
         public int ForwardGear;
+        public int SimulationFrequencyHertz;
         public Vector3 LocalAccelerationMetersPerSecondSquared;
         public VehicleInputState Input;
         public WheelTelemetry[] Wheels;

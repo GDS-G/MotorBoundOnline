@@ -13,5 +13,6 @@
     <Compile Include="..\..\Packages\com.gdsg.motorbound.foundation\Runtime\**\*.cs" Link="Foundation\%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\..\Packages\com.gdsg.motorbound.vehicle.core\Runtime\**\*.cs" Link="Vehicle.Core\%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\..\Packages\com.gdsg.motorbound.vehicle.physics\Runtime\TireForceModel.cs" Link="Vehicle.Physics\TireForceModel.cs" />
+    <Compile Include="..\..\Packages\com.gdsg.motorbound.vehicle.physics\Runtime\SurfaceConditionModel.cs" Link="Vehicle.Physics\SurfaceConditionModel.cs" />
   </ItemGroup>
 </Project>

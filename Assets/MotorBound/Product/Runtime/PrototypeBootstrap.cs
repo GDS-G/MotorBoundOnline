@@ -15,7 +15,7 @@ namespace MotorBound.Product
                 return;
             }
 
-            Time.fixedDeltaTime = 0.02f;
+            Time.fixedDeltaTime = 1f / RaycastVehicleController.CriticalVehicleSimulationFrequencyHertz;
             Time.maximumDeltaTime = 0.1f;
             UnityEngine.Physics.defaultSolverIterations = 12;
             UnityEngine.Physics.defaultSolverVelocityIterations = 4;
@@ -66,7 +66,9 @@ namespace MotorBound.Product
             ground.AddComponent<SurfaceGrip>().Configure(1f, "Dry asphalt");
 
             var wet = CreateBox(environment.transform, "Wet handling pad", new Vector3(0f, 0.008f, 28f), new Vector3(16f, 0.016f, 42f), wetMaterial, true);
-            wet.AddComponent<SurfaceGrip>().Configure(0.58f, "Wet asphalt");
+            wet.AddComponent<SurfaceGrip>().Configure(0.82f, "2.5 mm water film", 2.5f, 0.08f);
+
+            CreateRoughRoad(environment.transform, asphaltMaterial);
 
             for (var z = -110; z <= 285; z += 12)
             {
@@ -85,6 +87,27 @@ namespace MotorBound.Product
             CreateBox(environment.transform, "North barrier", new Vector3(0f, 0.5f, 319f), new Vector3(180f, 1f, 1f), coneMaterial, true);
             CreateBox(environment.transform, "West barrier", new Vector3(-89.5f, 0.5f, 80f), new Vector3(1f, 1f, 480f), coneMaterial, true);
             CreateBox(environment.transform, "East barrier", new Vector3(89.5f, 0.5f, 80f), new Vector3(1f, 1f, 480f), coneMaterial, true);
+        }
+
+        private static void CreateRoughRoad(Transform parent, Material material)
+        {
+            var roughRoad = new GameObject("Rough-road durability strip");
+            roughRoad.transform.SetParent(parent, false);
+            roughRoad.AddComponent<SurfaceGrip>().Configure(0.96f, "Rough asphalt", 0f, 0.65f);
+            CreateBox(roughRoad.transform, "Rough asphalt base", new Vector3(-22f, 0.008f, 225f), new Vector3(9f, 0.016f, 52f), material, true);
+
+            for (var index = 0; index < 18; index++)
+            {
+                var height = index % 3 == 0 ? 0.034f : 0.022f;
+                var lateralOffset = index % 2 == 0 ? -0.7f : 0.65f;
+                CreateBox(
+                    roughRoad.transform,
+                    "Measured roughness ridge " + (index + 1),
+                    new Vector3(-22f + lateralOffset, height * 0.5f, 202f + (index * 2.7f)),
+                    new Vector3(7.2f, height, 0.34f),
+                    material,
+                    true);
+            }
         }
 
         private static void CreateSkidpad(Transform parent, Vector3 center, float radius, Material material)

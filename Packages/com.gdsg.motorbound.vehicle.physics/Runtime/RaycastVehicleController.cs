@@ -9,6 +9,7 @@ namespace MotorBound.Vehicle.Physics
     [RequireComponent(typeof(Rigidbody))]
     public sealed class RaycastVehicleController : MonoBehaviour
     {
+        public const int CriticalVehicleSimulationFrequencyHertz = 360;
         private const int WheelCount = 4;
         private const float AirDensityKilogramsPerCubicMeter = 1.225f;
         private const float MinimumSlipReferenceSpeedMetersPerSecond = 1.5f;
@@ -68,6 +69,7 @@ namespace MotorBound.Vehicle.Physics
                 VehicleName = definition.DisplayName,
                 ForwardGear = forwardGear,
                 EngineSpeedRpm = engineSpeedRpm,
+                SimulationFrequencyHertz = CriticalVehicleSimulationFrequencyHertz,
                 Wheels = new WheelTelemetry[WheelCount]
             };
             configured = true;
@@ -124,6 +126,7 @@ namespace MotorBound.Vehicle.Physics
                 SpeedMetersPerSecond = body.velocity.magnitude,
                 EngineSpeedRpm = engineSpeedRpm,
                 ForwardGear = forwardGear,
+                SimulationFrequencyHertz = Mathf.RoundToInt(1f / Mathf.Max(fixedDeltaTime, 0.0001f)),
                 LocalAccelerationMetersPerSecondSquared = transform.InverseTransformDirection(accelerationWorld),
                 Input = input,
                 Wheels = telemetryWheels
@@ -140,21 +143,22 @@ namespace MotorBound.Vehicle.Physics
             var maximumRayDistance = (float)(suspension.RestLengthMeters + suspension.TravelMeters + tire.UnloadedRadiusMeters);
             var steeringDegrees = wheel.Steered ? input.Steering * (float)definition.MaximumSteeringAngleDegrees : 0f;
 
-            if (!UnityEngine.Physics.Raycast(rayOrigin, rayDirection, out var hit, maximumRayDistance, ~0, QueryTriggerInteraction.Ignore))
+            if (!TryGetWheelContact(wheel, rayOrigin, rayDirection, maximumRayDistance, steeringDegrees, out var contact))
             {
                 IntegrateFreeWheel(wheel, driveTorqueNewtonMeters, deltaTimeSeconds);
                 UpdateWheelVisual(wheel, steeringDegrees, (float)(suspension.RestLengthMeters + suspension.TravelMeters));
                 return new WheelTelemetry
                 {
                     Grounded = false,
+                    ContactSampleCount = 0,
                     SurfaceGripMultiplier = 0f,
                     SurfaceName = "Airborne"
                 };
             }
 
-            var suspensionLength = Mathf.Clamp(hit.distance - radius, 0f, (float)(suspension.RestLengthMeters + suspension.TravelMeters));
+            var suspensionLength = Mathf.Clamp(contact.Distance - radius, 0f, (float)(suspension.RestLengthMeters + suspension.TravelMeters));
             var compression = Mathf.Max(0f, (float)suspension.RestLengthMeters - suspensionLength);
-            var pointVelocity = body.GetPointVelocity(hit.point);
+            var pointVelocity = body.GetPointVelocity(contact.Point);
             var suspensionVelocity = Vector3.Dot(pointVelocity, transform.up);
             var damperRate = suspensionVelocity < 0f
                 ? (float)suspension.DamperCompressionNewtonsPerMeterPerSecond
@@ -162,17 +166,25 @@ namespace MotorBound.Vehicle.Physics
             var normalLoad = Mathf.Max(0f, (compression * (float)suspension.SpringRateNewtonsPerMeter) - (suspensionVelocity * damperRate));
 
             var steerRotation = Quaternion.AngleAxis(steeringDegrees, transform.up);
-            var wheelForward = Vector3.ProjectOnPlane(steerRotation * transform.forward, hit.normal).normalized;
-            var wheelRight = Vector3.Cross(hit.normal, wheelForward).normalized;
+            var wheelForward = Vector3.ProjectOnPlane(steerRotation * transform.forward, contact.Normal).normalized;
+            var wheelRight = Vector3.Cross(contact.Normal, wheelForward).normalized;
             var longitudinalSpeed = Vector3.Dot(pointVelocity, wheelForward);
             var lateralSpeed = Vector3.Dot(pointVelocity, wheelRight);
             var wheelSurfaceSpeed = wheel.AngularSpeedRadiansPerSecond * radius;
             var slipReferenceSpeed = Mathf.Max(Mathf.Abs(longitudinalSpeed), MinimumSlipReferenceSpeedMetersPerSecond);
             var slipRatio = (wheelSurfaceSpeed - longitudinalSpeed) / slipReferenceSpeed;
             var slipAngle = Mathf.Atan2(lateralSpeed, Mathf.Max(Mathf.Abs(longitudinalSpeed), MinimumSlipReferenceSpeedMetersPerSecond));
-            var surface = hit.collider.GetComponentInParent<SurfaceGrip>();
-            var surfaceMultiplier = surface != null ? surface.GripMultiplier : 1f;
-            var surfaceName = surface != null ? surface.SurfaceName : hit.collider.name;
+            var surface = contact.Collider.GetComponentInParent<SurfaceGrip>();
+            var surfaceState = surface != null
+                ? surface.Evaluate(Mathf.Abs(longitudinalSpeed), (float)tire.TreadWaterEvacuationFactor)
+                : SurfaceConditionModel.Evaluate(new SurfaceConditionInput
+                {
+                    BaseGripMultiplier = 1d,
+                    VehicleSpeedMetersPerSecond = Mathf.Abs(longitudinalSpeed),
+                    TireWaterEvacuationFactor = tire.TreadWaterEvacuationFactor
+                });
+            var surfaceMultiplier = (float)surfaceState.EffectiveGripMultiplier;
+            var surfaceName = surface != null ? surface.SurfaceName : contact.Collider.name;
 
             var forceResult = TireForceModel.Evaluate(new TireForceInput
             {
@@ -204,10 +216,10 @@ namespace MotorBound.Vehicle.Physics
             }
 
             body.AddForceAtPosition(
-                (hit.normal * normalLoad)
+                (contact.Normal * normalLoad)
                 + (wheelForward * longitudinalForce)
                 + (wheelRight * lateralForce),
-                hit.point,
+                contact.Point,
                 ForceMode.Force);
 
             var serviceBias = wheel.Front
@@ -227,6 +239,7 @@ namespace MotorBound.Vehicle.Physics
             return new WheelTelemetry
             {
                 Grounded = true,
+                ContactSampleCount = contact.SampleCount,
                 SuspensionCompressionMeters = compression,
                 NormalLoadNewtons = normalLoad,
                 SlipRatio = slipRatio,
@@ -234,8 +247,63 @@ namespace MotorBound.Vehicle.Physics
                 LongitudinalForceNewtons = longitudinalForce,
                 LateralForceNewtons = lateralForce,
                 SurfaceGripMultiplier = surfaceMultiplier,
+                WaterFilmDepthMillimeters = surface != null ? surface.WaterFilmDepthMillimeters : 0f,
                 SurfaceName = surfaceName
             };
+        }
+
+        private bool TryGetWheelContact(
+            WheelState wheel,
+            Vector3 centerOrigin,
+            Vector3 direction,
+            float maximumDistance,
+            float steeringDegrees,
+            out WheelContact contact)
+        {
+            var sampleCount = Mathf.Clamp(definition.Tire.ContactPatchSampleCount, 1, 5);
+            var steerRotation = Quaternion.AngleAxis(steeringDegrees, transform.up);
+            var sampleRight = (steerRotation * transform.right).normalized;
+            var halfWidth = (float)definition.Tire.SectionWidthMeters * 0.5f;
+            var nearestDistance = float.PositiveInfinity;
+            var nearestHit = default(RaycastHit);
+            var normalSum = Vector3.zero;
+            var hitCount = 0;
+
+            for (var sampleIndex = 0; sampleIndex < sampleCount; sampleIndex++)
+            {
+                var normalizedOffset = sampleCount == 1
+                    ? 0f
+                    : ((sampleIndex / (float)(sampleCount - 1)) * 2f) - 1f;
+                var origin = centerOrigin + (sampleRight * (normalizedOffset * halfWidth));
+                if (!UnityEngine.Physics.Raycast(origin, direction, out var hit, maximumDistance, ~0, QueryTriggerInteraction.Ignore))
+                {
+                    continue;
+                }
+
+                hitCount++;
+                normalSum += hit.normal;
+                if (hit.distance < nearestDistance)
+                {
+                    nearestDistance = hit.distance;
+                    nearestHit = hit;
+                }
+            }
+
+            if (hitCount == 0)
+            {
+                contact = default(WheelContact);
+                return false;
+            }
+
+            contact = new WheelContact
+            {
+                Point = nearestHit.point,
+                Normal = normalSum.sqrMagnitude > 0.000001f ? normalSum.normalized : nearestHit.normal,
+                Distance = nearestDistance,
+                Collider = nearestHit.collider,
+                SampleCount = hitCount
+            };
+            return true;
         }
 
         private void UpdatePowertrain()
@@ -416,6 +484,15 @@ namespace MotorBound.Vehicle.Physics
             public float VisualSpinDegrees;
             public Transform VisualPivot;
             public Transform VisualWheel;
+        }
+
+        private struct WheelContact
+        {
+            public Vector3 Point;
+            public Vector3 Normal;
+            public float Distance;
+            public Collider Collider;
+            public int SampleCount;
         }
     }
 }
