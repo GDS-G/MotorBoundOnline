@@ -22,6 +22,12 @@ internal static class Program
             VerifyArchitectureIdentity();
             VerifyFitmentPipeline();
             VerifyWaterFilmResponse();
+            VerifyAssemblyManifest();
+            VerifyDimensionalCompatibility();
+            VerifyBuildPlanDependencies();
+            VerifyManifestMassOwnershipGuard();
+            VerifyClearanceGuardrails();
+            VerifyIncompleteBuildPlanRejection();
 
             foreach (var result in Results)
             {
@@ -119,6 +125,63 @@ internal static class Program
         var standingWater = SurfaceConditionModel.Evaluate(CreateSurfaceInput(4d));
         Require(standingWater.EffectiveGripMultiplier < dry.EffectiveGripMultiplier, "Standing water did not reduce effective grip.");
         Results.Add("speed-sensitive water-film response");
+    }
+
+    private static void VerifyAssemblyManifest()
+    {
+        var manifest = ReferenceVehicleCatalog.CreateKiyoraAvenPrototypeAssemblyManifest();
+        Require(!manifest.Validate().Any(), "Reference vehicle assembly manifest is invalid.");
+        Require(Math.Abs(manifest.ComputeAuthoritativeMassKilograms() - 1120d) < 0.000001d, "Assembly manifest double-counts or omits reference mass.");
+        Results.Add("authoritative vehicle assembly manifest");
+    }
+
+    private static void VerifyDimensionalCompatibility()
+    {
+        var result = DimensionalCompatibilityEvaluator.Evaluate(
+            ReferenceVehicleCatalog.CreateKiyoraAvenPrototypeOperatingEnvelope(),
+            ReferenceVehicleCatalog.CreateStandardPassengerGarageProfile());
+        Require(result.Status == DimensionalCompatibilityStatus.Compatible, "Reference Kiyora Aven does not fit the verified passenger garage.");
+        Results.Add("vehicle-envelope facility compatibility");
+    }
+
+    private static void VerifyBuildPlanDependencies()
+    {
+        var result = BuildPlanEvaluator.Evaluate(ReferenceVehicleCatalog.CreateKiyoraAvenFactoryPowertrainBuildPlan());
+        Require(result.IsValid, "Reference powertrain build plan is incomplete.");
+        Require(result.BillOfMaterials.Length == 6, "Reference powertrain bill of materials is incomplete.");
+        Results.Add("dependency-complete powertrain build plan");
+    }
+
+    private static void VerifyManifestMassOwnershipGuard()
+    {
+        var manifest = ReferenceVehicleCatalog.CreateKiyoraAvenPrototypeAssemblyManifest();
+        manifest.Parts[2].MassAccountingGroupId = manifest.Parts[1].MassAccountingGroupId;
+        Require(manifest.Validate().Any(issue => issue.Message.Contains("cannot both contribute mass")), "Manifest accepted duplicate mass ownership.");
+        Results.Add("assembly mass-ownership guard");
+    }
+
+    private static void VerifyClearanceGuardrails()
+    {
+        var vehicle = ReferenceVehicleCatalog.CreateKiyoraAvenPrototypeOperatingEnvelope();
+        vehicle.OverallHeightMeters = 2.04d;
+        var profile = ReferenceVehicleCatalog.CreateStandardPassengerGarageProfile();
+        var restricted = DimensionalCompatibilityEvaluator.Evaluate(vehicle, profile);
+        Require(restricted.Status == DimensionalCompatibilityStatus.Restricted, "Low garage accepted an overheight vehicle.");
+
+        profile.PostedClearHeightMeters = 2.08d;
+        var unverified = DimensionalCompatibilityEvaluator.Evaluate(vehicle, profile);
+        Require(unverified.Status == DimensionalCompatibilityStatus.Unverified, "Contradictory posted and physical clearance was not quarantined.");
+        Results.Add("posted and physical clearance guardrails");
+    }
+
+    private static void VerifyIncompleteBuildPlanRejection()
+    {
+        var plan = ReferenceVehicleCatalog.CreateKiyoraAvenFactoryPowertrainBuildPlan();
+        var removedStepId = plan.Steps[1].StepId;
+        plan.Steps = plan.Steps.Where(step => step.StepId != removedStepId).ToArray();
+        var result = BuildPlanEvaluator.Evaluate(plan);
+        Require(!result.IsValid && result.Issues.Any(issue => issue.Kind == BuildPlanIssueKind.MissingDependency), "Incomplete powertrain build plan was accepted.");
+        Results.Add("incomplete powertrain plan rejection");
     }
 
     private static SurfaceConditionInput CreateSurfaceInput(double waterDepthMillimeters)

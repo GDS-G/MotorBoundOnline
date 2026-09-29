@@ -27,6 +27,9 @@ namespace MotorBound.Vehicle.Core
     [Serializable]
     public sealed class EngineDefinition
     {
+        public StableId EngineeringFamilyId;
+        public int EngineeringFamilyRevision = 1;
+        public StableId AssemblySpecificationId;
         public string Architecture = "Inline-four";
         public double DisplacementLiters = 2.0d;
         public double IdleSpeedRpm = 900d;
@@ -73,6 +76,9 @@ namespace MotorBound.Vehicle.Core
     [Serializable]
     public sealed class TransmissionDefinition
     {
+        public StableId EngineeringFamilyId;
+        public int EngineeringFamilyRevision = 1;
+        public StableId AssemblySpecificationId;
         public double[] ForwardGearRatios = Array.Empty<double>();
         public double ReverseGearRatio = -3.21d;
         public double FinalDriveRatio = 4.1d;
@@ -171,6 +177,9 @@ namespace MotorBound.Vehicle.Core
 
             if (Engine != null)
             {
+                Require(!Engine.EngineeringFamilyId.IsEmpty, "engine.engineeringFamilyId", "A stable engine engineering-family ID is required.", issues);
+                Require(Engine.EngineeringFamilyRevision > 0, "engine.engineeringFamilyRevision", "Engine engineering-family revision must be positive.", issues);
+                Require(!Engine.AssemblySpecificationId.IsEmpty, "engine.assemblySpecificationId", "A stable engine assembly-specification ID is required.", issues);
                 Require(Engine.IdleSpeedRpm > 0d, "engine.idleSpeedRpm", "Idle speed must be positive.", issues);
                 Require(Engine.RedlineSpeedRpm > Engine.IdleSpeedRpm, "engine.redlineSpeedRpm", "Redline must exceed idle speed.", issues);
                 Require(Engine.FullLoadTorqueCurve != null && Engine.FullLoadTorqueCurve.Length >= 2, "engine.fullLoadTorqueCurve", "At least two torque samples are required.", issues);
@@ -189,6 +198,9 @@ namespace MotorBound.Vehicle.Core
 
             if (Transmission != null)
             {
+                Require(!Transmission.EngineeringFamilyId.IsEmpty, "transmission.engineeringFamilyId", "A stable transmission engineering-family ID is required.", issues);
+                Require(Transmission.EngineeringFamilyRevision > 0, "transmission.engineeringFamilyRevision", "Transmission engineering-family revision must be positive.", issues);
+                Require(!Transmission.AssemblySpecificationId.IsEmpty, "transmission.assemblySpecificationId", "A stable transmission assembly-specification ID is required.", issues);
                 Require(Transmission.ForwardGearRatios != null && Transmission.ForwardGearRatios.Length > 0, "transmission.forwardGearRatios", "At least one forward gear is required.", issues);
                 Require(Transmission.FinalDriveRatio > 0d, "transmission.finalDriveRatio", "Final drive ratio must be positive.", issues);
                 Require(Transmission.Efficiency > 0d && Transmission.Efficiency <= 1d, "transmission.efficiency", "Efficiency must be in (0, 1].", issues);

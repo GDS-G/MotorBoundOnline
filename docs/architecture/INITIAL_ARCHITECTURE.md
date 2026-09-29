@@ -17,6 +17,9 @@ MotorBound.Product (prototype composition)
 ## Boundaries established now
 
 - `StableId` is value-based and invariant across display-name changes.
+- `VehicleAssemblyManifest` distinguishes versioned catalog definitions from physical instances and prevents complete assemblies and constituents from both owning the same mass.
+- `VehicleOperatingEnvelope` is derived from a named manifest revision and is evaluated against machine-readable route/facility restrictions.
+- `PowertrainBuildPlan` is a proposal with dependencies and a bill of materials; it is never treated as installed inventory.
 - Definition validation returns structured issues instead of logging from domain code.
 - Torque maps and tire-force math can run without a scene.
 - Unity-specific rigid-body and raycast work is isolated in the physics package.

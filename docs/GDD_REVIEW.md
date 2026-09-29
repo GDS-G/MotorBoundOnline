@@ -1,6 +1,6 @@
 # GDD Review and Development Start
 
-Source reviewed: **MotorBound Online Game Design Document**, including all 20 child tabs nested beneath **MotorBound Online Game Design**, Google Drive document ID `1GwRPpUUJm0_amb49_rhrVoM1Qxt2Jr3-Gkd31TACFvE`.
+Source reviewed: **MotorBound Online Game Design Document**, including all 26 child tabs nested beneath **MotorBound Online Game Design**, Google Drive document ID `1GwRPpUUJm0_amb49_rhrVoM1Qxt2Jr3-Gkd31TACFvE`.
 
 ## Product reading
 
@@ -23,6 +23,10 @@ The GDD's protected priority order is:
 - Stable IDs and versioned definitions are established before persistence or network services.
 - Vehicle data preserves the Family → Generation → Platform → Body Shell → Chassis → Powertrain → Interior → Trim Manifest identity chain.
 - Fitment reports one of the six GDD classifications only after identity, mount, static geometry, dynamic sweep, alignment, capacity, serviceability, control, regulatory, and visual-completeness checks.
+- A versioned Vehicle Assembly Manifest is the source of truth for installed part instances, relationships, mass, and cost ownership. Catalog definitions and physical instances remain separate.
+- Every assembled vehicle exposes a live operating envelope tied to its manifest revision. Route and facility checks compare measured width, height, length, wheelbase, combination length, load, ground clearance, approach/departure/breakover, turning circle, design class, and trailer state.
+- Posted clearance cannot outrank measured collision clearance. Invalid or incomplete facility data produces an unverified result rather than silently allowing access.
+- Powertrain changes are dependency plans with recursive requirements, mutual exclusions, deterministic dependency order, a complete bill of materials, and explicit separation from installed inventory.
 - Unity packages and explicit assembly boundaries prevent the product from becoming one coupled `Assets` tree.
 - The first map is a test facility, not an attempt to fake the 48 km by 32 km beta world.
 
@@ -36,10 +40,11 @@ The first coherent milestone combines Phase 0 repository foundations with the Ph
 - A 360 Hz critical-vehicle step, dry asphalt, a speed-sensitive water-film patch, a physical rough-road strip, skidpad geometry, and recovery controls.
 - On-screen telemetry for speed, RPM, gear, controls, tire slip, and surface.
 - Pure EditMode tests for units, identity, torque interpolation, validation, and tire-force invariants.
+- Engine-independent tests for assembly-manifest accounting, dimensional facility access, contradictory clearance data, and build-plan dependency failures.
 - Repeatable project setup and Windows build automation.
 
 This slice attacks Gate A (vehicle feel) while creating reusable foundations for fitment, parts, network state, audio state, and telemetry.
 
 ## Deferred by the risk-first roadmap
 
-The remaining tabs materially expand world corridors, property, workshop interaction, audio synthesis, body and lighting systems, condition and restoration, AVIN/DSR history, insurance, and market channels. Those requirements are recorded as downstream consumers of the same stable identities and component records; they are not being collapsed into the vehicle-feel prototype before Gate A is evaluated.
+The remaining tabs materially expand world corridors, property, workshop interaction, audio synthesis, body and lighting systems, condition and restoration, AVIN/DSR history, insurance, markets, tolling, parking, road law, pursuit, impound, careers, and contracts. Those requirements are recorded as downstream consumers of the same stable identities, assembly manifest, operating envelope, and evidence records; they are not being collapsed into the vehicle-feel prototype before Gate A is evaluated.

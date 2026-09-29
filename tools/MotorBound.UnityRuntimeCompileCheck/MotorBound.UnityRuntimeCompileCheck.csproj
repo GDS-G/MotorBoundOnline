@@ -6,6 +6,7 @@
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <UnityManagedPath Condition="'$(UnityManagedPath)' == ''">C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Data\Managed</UnityManagedPath>
+    <NUnitFrameworkPath Condition="'$(NUnitFrameworkPath)' == ''">$(LocalAppData)\Unity\cache\packages\packages.unity.com\com.unity.ext.nunit@1.0.6\net35\unity-custom\nunit.framework.dll</NUnitFrameworkPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -49,7 +50,7 @@
       <Private>false</Private>
     </Reference>
     <Reference Include="nunit.framework">
-      <HintPath>$(LocalAppData)\Unity\cache\packages\packages.unity.com\com.unity.ext.nunit@1.0.6\net35\unity-custom\nunit.framework.dll</HintPath>
+      <HintPath>$(NUnitFrameworkPath)</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>

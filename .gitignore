@@ -10,6 +10,9 @@
 [Rr]ecordings/
 **/[Bb]in/
 **/[Oo]bj/
+.dotnet-appdata/
+.dotnet-cli-home/
+.local-appdata/
 
 # IDE and editor state
 .vs/
