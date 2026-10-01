@@ -15,6 +15,7 @@ namespace MotorBound.Vehicle.Physics
         private const float MinimumSlipReferenceSpeedMetersPerSecond = 1.5f;
 
         private readonly WheelState[] wheels = new WheelState[WheelCount];
+        private RaycastHit[] contactHits = new RaycastHit[8];
         private Rigidbody body;
         private VehicleDefinition definition;
         private VehicleInputState input;
@@ -22,9 +23,12 @@ namespace MotorBound.Vehicle.Physics
         private int forwardGear = 1;
         private float engineSpeedRpm;
         private bool configured;
+        private Mesh tireMesh;
+        private Material tireMaterial;
 
         public VehicleTelemetry Telemetry { get; private set; }
         public VehicleDefinition Definition => definition;
+        public bool SimulationPaused { get; set; }
 
         private void Awake()
         {
@@ -41,38 +45,68 @@ namespace MotorBound.Vehicle.Physics
 
         public void Configure(VehicleDefinition vehicleDefinition)
         {
-            definition = vehicleDefinition ?? throw new ArgumentNullException(nameof(vehicleDefinition));
-            var validationIssues = definition.Validate();
+            if (vehicleDefinition == null)
+            {
+                throw new ArgumentNullException(nameof(vehicleDefinition));
+            }
+
+            var validationIssues = vehicleDefinition.Validate();
             if (validationIssues.Count > 0)
             {
                 throw new ArgumentException("Vehicle definition is invalid: " + validationIssues[0], nameof(vehicleDefinition));
             }
 
+            definition = vehicleDefinition;
             body = body != null ? body : GetComponent<Rigidbody>();
             body.mass = (float)definition.MassKilograms;
             body.drag = 0f;
             body.angularDrag = 0.08f;
             body.interpolation = RigidbodyInterpolation.Interpolate;
             body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-            body.centerOfMass = new Vector3(0f, (float)-definition.CenterOfMassHeightMeters, (float)definition.CenterOfMassLongitudinalOffsetMeters);
+            // The definition measures CG above ground; the transform is the loaded suspension-mount datum.
+            body.centerOfMass = new Vector3(0f, (float)definition.CenterOfMassHeightMeters - NominalRootHeightMeters(),
+                (float)definition.CenterOfMassLongitudinalOffsetMeters);
             body.maxAngularVelocity = 20f;
 
+            UpdateTireMesh();
             InitializeWheel(0, "Front Left", -(float)definition.FrontTrackMeters * 0.5f, (float)definition.WheelbaseMeters * 0.5f, true, false, true);
             InitializeWheel(1, "Front Right", (float)definition.FrontTrackMeters * 0.5f, (float)definition.WheelbaseMeters * 0.5f, true, false, false);
             InitializeWheel(2, "Rear Left", -(float)definition.RearTrackMeters * 0.5f, -(float)definition.WheelbaseMeters * 0.5f, false, true, true);
             InitializeWheel(3, "Rear Right", (float)definition.RearTrackMeters * 0.5f, -(float)definition.WheelbaseMeters * 0.5f, false, true, false);
 
-            previousVelocity = body.velocity;
-            engineSpeedRpm = (float)definition.Engine.IdleSpeedRpm;
+            configured = true;
+            ResetMotion();
+        }
+
+        public void ResetMotion()
+        {
+            body = body != null ? body : GetComponent<Rigidbody>();
+            body.velocity = Vector3.zero;
+            body.angularVelocity = Vector3.zero;
+            previousVelocity = Vector3.zero;
+            input = default(VehicleInputState);
+            forwardGear = 1;
+            engineSpeedRpm = definition != null ? (float)definition.Engine.IdleSpeedRpm : 0f;
+            foreach (var wheel in wheels)
+            {
+                if (wheel == null)
+                {
+                    continue;
+                }
+
+                wheel.AngularSpeedRadiansPerSecond = 0f;
+                wheel.VisualSpinDegrees = 0f;
+                UpdateWheelVisual(wheel, 0f, NominalSuspensionLengthMeters(), 0f);
+            }
+
             Telemetry = new VehicleTelemetry
             {
-                VehicleName = definition.DisplayName,
+                VehicleName = definition != null ? definition.DisplayName : string.Empty,
                 ForwardGear = forwardGear,
                 EngineSpeedRpm = engineSpeedRpm,
                 SimulationFrequencyHertz = CriticalVehicleSimulationFrequencyHertz,
                 Wheels = new WheelTelemetry[WheelCount]
             };
-            configured = true;
         }
 
         public void SetInput(VehicleInputState nextInput)
@@ -84,22 +118,27 @@ namespace MotorBound.Vehicle.Physics
         {
             var yaw = transform.eulerAngles.y;
             transform.SetPositionAndRotation(transform.position + (Vector3.up * 1.25f), Quaternion.Euler(0f, yaw, 0f));
-            body.velocity = Vector3.zero;
-            body.angularVelocity = Vector3.zero;
-            foreach (var wheel in wheels)
-            {
-                wheel.AngularSpeedRadiansPerSecond = 0f;
-            }
+            ResetMotion();
         }
 
         private void FixedUpdate()
         {
-            if (!configured)
+            SimulateStep(Time.fixedDeltaTime);
+        }
+
+        // The Editor validation runner calls this once before each manual Physics.Simulate step.
+        public void SimulateStep(float fixedDeltaTime)
+        {
+            if (!configured || SimulationPaused)
             {
                 return;
             }
 
-            var fixedDeltaTime = Time.fixedDeltaTime;
+            if (float.IsNaN(fixedDeltaTime) || float.IsInfinity(fixedDeltaTime) || fixedDeltaTime <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(fixedDeltaTime));
+            }
+
             UpdatePowertrain();
             var drivenWheelCount = GetDrivenWheelCount();
             var gearRatio = (float)definition.Transmission.ForwardGearRatios[forwardGear - 1];
@@ -146,7 +185,7 @@ namespace MotorBound.Vehicle.Physics
             if (!TryGetWheelContact(wheel, rayOrigin, rayDirection, maximumRayDistance, steeringDegrees, out var contact))
             {
                 IntegrateFreeWheel(wheel, driveTorqueNewtonMeters, deltaTimeSeconds);
-                UpdateWheelVisual(wheel, steeringDegrees, (float)(suspension.RestLengthMeters + suspension.TravelMeters));
+                UpdateWheelVisual(wheel, steeringDegrees, (float)(suspension.RestLengthMeters + suspension.TravelMeters), deltaTimeSeconds);
                 return new WheelTelemetry
                 {
                     Grounded = false,
@@ -235,7 +274,7 @@ namespace MotorBound.Vehicle.Physics
                 longitudinalSpeed,
                 deltaTimeSeconds);
 
-            UpdateWheelVisual(wheel, steeringDegrees, suspensionLength);
+            UpdateWheelVisual(wheel, steeringDegrees, suspensionLength, deltaTimeSeconds);
             return new WheelTelemetry
             {
                 Grounded = true,
@@ -275,7 +314,7 @@ namespace MotorBound.Vehicle.Physics
                     ? 0f
                     : ((sampleIndex / (float)(sampleCount - 1)) * 2f) - 1f;
                 var origin = centerOrigin + (sampleRight * (normalizedOffset * halfWidth));
-                if (!UnityEngine.Physics.Raycast(origin, direction, out var hit, maximumDistance, ~0, QueryTriggerInteraction.Ignore))
+                if (!TryGetExternalRayContact(origin, direction, maximumDistance, out var hit))
                 {
                     continue;
                 }
@@ -304,6 +343,33 @@ namespace MotorBound.Vehicle.Physics
                 SampleCount = hitCount
             };
             return true;
+        }
+
+        private bool TryGetExternalRayContact(Vector3 origin, Vector3 direction, float maximumDistance, out RaycastHit nearestHit)
+        {
+            // Compound body colliders may sit below the suspension mounts. Wheel rays must not support the car on itself.
+            var hitCount = UnityEngine.Physics.RaycastNonAlloc(origin, direction, contactHits, maximumDistance, ~0, QueryTriggerInteraction.Ignore);
+            while (hitCount == contactHits.Length)
+            {
+                Array.Resize(ref contactHits, contactHits.Length * 2);
+                hitCount = UnityEngine.Physics.RaycastNonAlloc(origin, direction, contactHits, maximumDistance, ~0, QueryTriggerInteraction.Ignore);
+            }
+
+            nearestHit = default(RaycastHit);
+            var nearestDistance = float.PositiveInfinity;
+            for (var index = 0; index < hitCount; index++)
+            {
+                var hit = contactHits[index];
+                if (hit.rigidbody == body || hit.distance >= nearestDistance)
+                {
+                    continue;
+                }
+
+                nearestHit = hit;
+                nearestDistance = hit.distance;
+            }
+
+            return nearestDistance < float.PositiveInfinity;
         }
 
         private void UpdatePowertrain()
@@ -432,32 +498,28 @@ namespace MotorBound.Vehicle.Physics
         {
             var pivot = new GameObject(wheel.Name + " Visual").transform;
             pivot.SetParent(transform, false);
-            var cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            var cylinder = new GameObject("Tire", typeof(MeshFilter), typeof(MeshRenderer));
             cylinder.name = "Tire";
             cylinder.transform.SetParent(pivot, false);
-            cylinder.transform.localScale = new Vector3(
-                (float)definition.Tire.UnloadedRadiusMeters * 2f,
-                0.12f,
-                (float)definition.Tire.UnloadedRadiusMeters * 2f);
             cylinder.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
-            var collider = cylinder.GetComponent<Collider>();
-            if (collider != null)
+            cylinder.GetComponent<MeshFilter>().sharedMesh = tireMesh;
+            if (tireMaterial == null)
             {
-                collider.enabled = false;
-                Destroy(collider);
+                var shader = Shader.Find("Standard") ?? Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Diffuse");
+                tireMaterial = new Material(shader)
+                {
+                    name = "Prototype tire rubber",
+                    color = new Color(0.04f, 0.045f, 0.05f)
+                };
             }
 
-            var renderer = cylinder.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                renderer.material.color = new Color(0.04f, 0.045f, 0.05f);
-            }
+            cylinder.GetComponent<MeshRenderer>().sharedMaterial = tireMaterial;
 
             wheel.VisualPivot = pivot;
             wheel.VisualWheel = cylinder.transform;
         }
 
-        private void UpdateWheelVisual(WheelState wheel, float steeringDegrees, float suspensionLengthMeters)
+        private void UpdateWheelVisual(WheelState wheel, float steeringDegrees, float suspensionLengthMeters, float deltaTimeSeconds)
         {
             if (wheel.VisualPivot == null)
             {
@@ -467,9 +529,96 @@ namespace MotorBound.Vehicle.Physics
             wheel.VisualPivot.localPosition = wheel.LocalMountPosition + (Vector3.down * suspensionLengthMeters);
             wheel.VisualPivot.localRotation = Quaternion.Euler(0f, steeringDegrees, 0f);
             wheel.VisualSpinDegrees = Mathf.Repeat(
-                wheel.VisualSpinDegrees + (wheel.AngularSpeedRadiansPerSecond * Mathf.Rad2Deg * Time.fixedDeltaTime),
+                wheel.VisualSpinDegrees + (wheel.AngularSpeedRadiansPerSecond * Mathf.Rad2Deg * deltaTimeSeconds),
                 360f);
-            wheel.VisualWheel.localRotation = Quaternion.Euler(0f, wheel.VisualSpinDegrees, 90f);
+            wheel.VisualWheel.localRotation = Quaternion.Euler(0f, 0f, 90f) * Quaternion.AngleAxis(wheel.VisualSpinDegrees, Vector3.up);
+        }
+
+        private void UpdateTireMesh()
+        {
+            // Bake dimensions into shared mesh vertices; every controlled transform stays at unit scale.
+            const int segments = 32;
+            var radius = (float)definition.Tire.UnloadedRadiusMeters;
+            var halfWidth = (float)definition.Tire.SectionWidthMeters * 0.5f;
+            var vertices = new Vector3[(segments * 4) + 2];
+            var normals = new Vector3[vertices.Length];
+            var triangles = new int[segments * 12];
+            for (var index = 0; index < segments; index++)
+            {
+                var angle = index * Mathf.PI * 2f / segments;
+                var radial = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle));
+                vertices[index * 2] = radial * radius + Vector3.down * halfWidth;
+                vertices[(index * 2) + 1] = radial * radius + Vector3.up * halfWidth;
+                normals[index * 2] = normals[(index * 2) + 1] = radial;
+                vertices[(segments * 2) + index] = vertices[index * 2];
+                vertices[(segments * 3) + index] = vertices[(index * 2) + 1];
+                normals[(segments * 2) + index] = Vector3.down;
+                normals[(segments * 3) + index] = Vector3.up;
+                var next = (index + 1) % segments;
+                var offset = index * 12;
+                triangles[offset] = index * 2;
+                triangles[offset + 1] = (index * 2) + 1;
+                triangles[offset + 2] = next * 2;
+                triangles[offset + 3] = next * 2;
+                triangles[offset + 4] = (index * 2) + 1;
+                triangles[offset + 5] = (next * 2) + 1;
+                triangles[offset + 6] = segments * 4;
+                triangles[offset + 7] = (segments * 2) + index;
+                triangles[offset + 8] = (segments * 2) + next;
+                triangles[offset + 9] = (segments * 4) + 1;
+                triangles[offset + 10] = (segments * 3) + next;
+                triangles[offset + 11] = (segments * 3) + index;
+            }
+
+            vertices[segments * 4] = Vector3.down * halfWidth;
+            vertices[(segments * 4) + 1] = Vector3.up * halfWidth;
+            normals[segments * 4] = Vector3.down;
+            normals[(segments * 4) + 1] = Vector3.up;
+            if (tireMesh == null)
+            {
+                tireMesh = new Mesh { name = "Prototype dimensioned tire" };
+            }
+
+            tireMesh.Clear();
+            tireMesh.vertices = vertices;
+            tireMesh.normals = normals;
+            tireMesh.triangles = triangles;
+            tireMesh.RecalculateBounds();
+        }
+
+        private float NominalRootHeightMeters()
+        {
+            return (float)definition.Tire.UnloadedRadiusMeters + NominalSuspensionLengthMeters();
+        }
+
+        private float NominalSuspensionLengthMeters()
+        {
+            var nominalCompression = (float)(definition.MassKilograms * 9.80665d / (WheelCount * definition.Suspension.SpringRateNewtonsPerMeter));
+            return Mathf.Clamp((float)definition.Suspension.RestLengthMeters - nominalCompression,
+                0f, (float)(definition.Suspension.RestLengthMeters + definition.Suspension.TravelMeters));
+        }
+
+        private void OnDestroy()
+        {
+            ReleaseOwnedObject(tireMesh);
+            ReleaseOwnedObject(tireMaterial);
+        }
+
+        private static void ReleaseOwnedObject(UnityEngine.Object ownedObject)
+        {
+            if (ownedObject == null)
+            {
+                return;
+            }
+
+            if (Application.isPlaying)
+            {
+                Destroy(ownedObject);
+            }
+            else
+            {
+                DestroyImmediate(ownedObject);
+            }
         }
 
         private sealed class WheelState

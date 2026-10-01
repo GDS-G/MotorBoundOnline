@@ -24,9 +24,11 @@ namespace MotorBound.Editor
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
             PlayerSettings.companyName = "GDS-G";
             PlayerSettings.productName = "MotorBound Online - Vehicle Dynamics Prototype";
-            PlayerSettings.bundleVersion = "0.1.0";
+            PlayerSettings.bundleVersion = "0.2.0";
             PlayerSettings.defaultScreenWidth = 1600;
             PlayerSettings.defaultScreenHeight = 900;
+            PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
+            PlayerSettings.resizableWindow = true;
             PlayerSettings.runInBackground = true;
             EditorSettings.serializationMode = SerializationMode.ForceText;
             AssetDatabase.SaveAssets();

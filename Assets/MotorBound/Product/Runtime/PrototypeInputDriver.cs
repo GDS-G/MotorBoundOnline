@@ -8,6 +8,7 @@ namespace MotorBound.Product
     {
         private RaycastVehicleController controller;
         private float smoothedSteering;
+        public bool DrivingEnabled { get; set; } = true;
 
         public void Configure(RaycastVehicleController target)
         {
@@ -23,6 +24,13 @@ namespace MotorBound.Product
         {
             if (controller == null)
             {
+                return;
+            }
+
+            if (!DrivingEnabled)
+            {
+                smoothedSteering = 0f;
+                controller.SetInput(new VehicleInputState(0f, 0f, 0f, 0f));
                 return;
             }
 

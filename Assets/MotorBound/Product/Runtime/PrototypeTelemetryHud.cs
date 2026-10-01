@@ -9,6 +9,7 @@ namespace MotorBound.Product
     {
         private static readonly string[] WheelLabels = { "FL", "FR", "RL", "RR" };
         private RaycastVehicleController controller;
+        private PrototypeGarageSession garage;
         private GUIStyle headingStyle;
         private GUIStyle bodyStyle;
         private bool visible = true;
@@ -16,6 +17,7 @@ namespace MotorBound.Product
         public void Configure(RaycastVehicleController target)
         {
             controller = target;
+            garage = target.GetComponent<PrototypeGarageSession>();
         }
 
         private void Update()
@@ -28,7 +30,7 @@ namespace MotorBound.Product
 
         private void OnGUI()
         {
-            if (!visible || controller == null)
+            if (!visible || controller == null || (garage != null && garage.IsInGarage))
             {
                 return;
             }

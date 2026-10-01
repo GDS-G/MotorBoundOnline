@@ -18,6 +18,7 @@
     <Compile Include="..\..\Packages\com.gdsg.motorbound.vehicle.physics\Tests\Editor\**\*.cs" Link="Tests\Vehicle.Physics\%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\..\Assets\MotorBound\Product\Runtime\**\*.cs" Link="Product\%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\..\Assets\MotorBound\Product\Editor\**\*.cs" Link="Product.Editor\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\..\Assets\MotorBound\Product\Tests\**\*.cs" Link="Product.Tests\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,6 +32,10 @@
     </Reference>
     <Reference Include="UnityEngine.PhysicsModule">
       <HintPath>$(UnityManagedPath)\UnityEngine\UnityEngine.PhysicsModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.JSONSerializeModule">
+      <HintPath>$(UnityManagedPath)\UnityEngine\UnityEngine.JSONSerializeModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.InputLegacyModule">

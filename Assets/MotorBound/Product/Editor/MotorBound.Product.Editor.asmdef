@@ -2,7 +2,10 @@
   "name": "MotorBound.Product.Editor",
   "rootNamespace": "MotorBound.Editor",
   "references": [
-    "MotorBound.Product"
+    "MotorBound.Product",
+    "MotorBound.Foundation",
+    "MotorBound.Vehicle.Core",
+    "MotorBound.Vehicle.Physics"
   ],
   "includePlatforms": [
     "Editor"
