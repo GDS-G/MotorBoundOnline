@@ -231,6 +231,7 @@ namespace MotorBound.Vehicle.Physics
                 SlipRatio = slipRatio,
                 SlipAngleRadians = slipAngle,
                 PeakDryFrictionCoefficient = tire.PeakDryFrictionCoefficient,
+                SlidingGripRatio = tire.SlidingGripRatio,
                 SurfaceGripMultiplier = surfaceMultiplier,
                 LongitudinalSlipStiffnessNewtonPerRatio = tire.LongitudinalSlipStiffnessNewtonPerRatio,
                 CorneringStiffnessNewtonPerRadian = tire.CorneringStiffnessNewtonPerRadian,
@@ -287,6 +288,10 @@ namespace MotorBound.Vehicle.Physics
                 LateralForceNewtons = lateralForce,
                 SurfaceGripMultiplier = surfaceMultiplier,
                 WaterFilmDepthMillimeters = surface != null ? surface.WaterFilmDepthMillimeters : 0f,
+                ContactPointWorld = contact.Point,
+                ContactNormalWorld = contact.Normal,
+                SlipDemandRatio = (float)forceResult.SlipDemandRatio,
+                IsSliding = forceResult.IsSliding,
                 SurfaceName = surfaceName
             };
         }

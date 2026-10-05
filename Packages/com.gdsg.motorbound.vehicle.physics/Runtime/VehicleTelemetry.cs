@@ -16,6 +16,10 @@ namespace MotorBound.Vehicle.Physics
         public float SurfaceGripMultiplier;
         public int ContactSampleCount;
         public float WaterFilmDepthMillimeters;
+        public Vector3 ContactPointWorld;
+        public Vector3 ContactNormalWorld;
+        public float SlipDemandRatio;
+        public bool IsSliding;
         public string SurfaceName;
     }
 

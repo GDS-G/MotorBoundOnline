@@ -8,6 +8,7 @@ namespace MotorBound.Vehicle.Physics
         public double SlipRatio;
         public double SlipAngleRadians;
         public double PeakDryFrictionCoefficient;
+        public double SlidingGripRatio;
         public double SurfaceGripMultiplier;
         public double LongitudinalSlipStiffnessNewtonPerRatio;
         public double CorneringStiffnessNewtonPerRadian;
@@ -21,18 +22,24 @@ namespace MotorBound.Vehicle.Physics
             double longitudinalForceNewtons,
             double lateralForceNewtons,
             double maximumCombinedForceNewtons,
-            double effectiveFrictionCoefficient)
+            double effectiveFrictionCoefficient,
+            double slipDemandRatio = 0d,
+            bool isSliding = false)
         {
             LongitudinalForceNewtons = longitudinalForceNewtons;
             LateralForceNewtons = lateralForceNewtons;
             MaximumCombinedForceNewtons = maximumCombinedForceNewtons;
             EffectiveFrictionCoefficient = effectiveFrictionCoefficient;
+            SlipDemandRatio = slipDemandRatio;
+            IsSliding = isSliding;
         }
 
         public double LongitudinalForceNewtons { get; }
         public double LateralForceNewtons { get; }
         public double MaximumCombinedForceNewtons { get; }
         public double EffectiveFrictionCoefficient { get; }
+        public double SlipDemandRatio { get; }
+        public bool IsSliding { get; }
     }
 
     /// <summary>
@@ -63,18 +70,27 @@ namespace MotorBound.Vehicle.Physics
             var requestedLongitudinal = Math.Max(0d, input.LongitudinalSlipStiffnessNewtonPerRatio) * slipRatio;
             var requestedLateral = -Math.Max(0d, input.CorneringStiffnessNewtonPerRadian) * slipAngle;
 
-            // Smoothly approach peak force in either direction before enforcing the combined envelope.
-            var longitudinal = maximumForce * Math.Tanh(requestedLongitudinal / maximumForce);
-            var lateral = maximumForce * Math.Tanh(requestedLateral / maximumForce);
-            var normalizedMagnitudeSquared = ((longitudinal * longitudinal) + (lateral * lateral)) / (maximumForce * maximumForce);
-            if (normalizedMagnitudeSquared > 1d)
+            // Saturate the complete slip demand once. Saturating the axes independently
+            // let a locked/spinning wheel retain almost full cornering grip.
+            var demandMagnitude = Math.Sqrt(requestedLongitudinal * requestedLongitudinal
+                                            + requestedLateral * requestedLateral);
+            if (demandMagnitude <= double.Epsilon)
             {
-                var scale = 1d / Math.Sqrt(normalizedMagnitudeSquared);
-                longitudinal *= scale;
-                lateral *= scale;
+                return new TireForceResult(0d, 0d, maximumForce, effectiveMu);
             }
 
-            return new TireForceResult(longitudinal, lateral, maximumForce, effectiveMu);
+            var slidingRatio = IsFinite(input.SlidingGripRatio) && input.SlidingGripRatio > 0d
+                ? Math.Min(input.SlidingGripRatio, 1d) : 0.78d;
+            // Compact sine/atan curve: unit slope at zero demand, a smooth finite
+            // peak, then a continuous decline toward the authored sliding fraction.
+            var shape = 2d - 2d * Math.Asin(slidingRatio) / Math.PI;
+            var normalizedDemand = demandMagnitude / maximumForce;
+            var forceMagnitude = maximumForce * Math.Sin(shape * Math.Atan(normalizedDemand / shape));
+            var scale = forceMagnitude / demandMagnitude;
+            var peakDemand = shape < 1.000001d ? double.PositiveInfinity
+                : shape * Math.Tan(Math.PI / (2d * shape));
+            return new TireForceResult(requestedLongitudinal * scale, requestedLateral * scale,
+                maximumForce, effectiveMu, normalizedDemand, normalizedDemand > peakDemand);
         }
 
         private static bool IsFinite(double value)

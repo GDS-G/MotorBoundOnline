@@ -4,7 +4,7 @@ MotorBound Online's design targets a persistent automotive world built around me
 
 This repository currently contains milestone **0.2: a local garage → test drive → return-and-save loop** for one rear-wheel-drive Kiyora Aven. The garage's installed assembly determines vehicle mass, supported wheel visuals, tire parameters, and the operating envelope. Stock and touring wheel packages connect the assembly manifest, dependency planner, fitment checks, driving controller, and versioned local save.
 
-The driving prototype uses a 360 Hz critical-vehicle step, tire-width contact sampling, water/roughness surface state, and custom tire forces without Unity `WheelCollider`. Version 0.2.1 makes released keyboard steering return to center more promptly, while retaining the existing gradual response when a steering key is pressed. Multiplayer, the economy, property ownership, and production vehicle inventory remain future work. See [the garage milestone guide](docs/prototypes/GARAGE_TEST_LOOP.md) for the acceptance loop, evidence, and limitations.
+The driving prototype uses a 360 Hz critical-vehicle step, tire-width contact sampling, water/roughness surface state, and custom tire forces without Unity `WheelCollider`. Version 0.2.2 retains the quicker steering return introduced in 0.2.1, corrects how wheelspin/braking and cornering share tire grip, and adds a smooth peak-to-sliding transition with contact-driven skid marks. Multiplayer, the economy, property ownership, and production vehicle inventory remain future work. See [the garage milestone guide](docs/prototypes/GARAGE_TEST_LOOP.md) for the acceptance loop, evidence, and limitations.
 
 ## Open the prototype
 
@@ -32,6 +32,8 @@ Controls:
 
 The course includes a workshop entrance with clearance checks, a skidpad, a 2.5 mm water-film section, a physical rough-road strip, lane markers, and obstacles. Parts are supplied for testing. The stock configuration is 1120 kg with 305 mm-radius, 205 mm-wide tires; touring plus required hardware is 1130 kg with 315 mm-radius, 225 mm-wide tires. These are provisional authored values, not measured real-vehicle calibration.
 
+Steering retains its full authored 32° range at speed. Full steering above 50 km/h can exceed the front tires' grip and push the car into a wide **front-tire skid**; that is not an input limiter or automatically a rear-wheel drift. Wheelspin and the handbrake now reduce the rear tires' available cornering grip. Try a brief Space press while turning, then release it and countersteer to catch the slide. Tire marks indicate actual post-peak sliding contacts; the F1 HUD distinguishes front, rear, and both-axle sliding.
+
 Save files use `Application.persistentDataPath/garage-v1.json`. A successful replacement retains the prior valid save as `garage-v1.json.bak`. Invalid, incomplete, or unsupported saves are preserved and block automatic replacement. Saving is explicit; leaving the game does not automatically save changes.
 
 ## Repository layout
@@ -44,13 +46,15 @@ Save files use `Application.persistentDataPath/garage-v1.json`. A successful rep
 
 ## Verification
 
-On October 5, 2026, **80 native Unity EditMode tests passed**, including steering release in both directions at 30, 60, and 144 Hz input updates. The actual Unity driving validation passed **16 maneuvers and 267 assertions**, including the eight original handling maneuvers plus eight keyboard steering-release scenarios. The generated report is `artifacts/driving-validation.json`, with before/after release measurements in `artifacts/steering-release-comparison.json`.
+On October 5, 2026, **108 native Unity EditMode tests passed**, including the combined-slip/sliding-force curve, bounded skid geometry and cleanup, garage persistence, and steering release in both directions at 30, 60, and 144 Hz input updates. The actual Unity driving validation passed **16 maneuvers and 267 assertions**, including the eight original handling maneuvers plus eight keyboard steering-release scenarios. The generated report is `artifacts/driving-validation.json`, with historical 0.2.1 before/after release measurements in `artifacts/steering-release-comparison.json`.
 
-At 60 Hz input updates, the full steering command centered in **83 ms**, compared with **300 ms** before the change. For the faster dry-road release cases (approximately 51–53 km/h), continued heading change over two seconds fell from about **18° to 7–8°**, and turning rate fell below **0.3°/s** by 500 ms without braking. These measurements cover both stock and touring configurations; subjective feel remains part of the player playtest.
+At 60 Hz input updates, the full steering command still centers in **83 ms**, compared with **300 ms** before the 0.2.1 release fix. With the 0.2.2 tire model, the faster dry-road release cases (approximately 51–53 km/h) added about **6.1–6.3°** of heading change over two seconds, with turning rate below **0.3°/s** by 500 ms without braking. These measurements cover both stock and touring configurations; subjective feel remains part of the player playtest.
 
-The **Windows player version 0.2.1 built successfully** at `Builds/Windows/MotorBoundVehiclePrototype.exe` (build summary: 91,779,237 bytes). Keep its adjacent data files when running or copying the player. The 0.2.0 live player checks confirmed workshop startup, missing-hardware rejection, touring installation, incompatible-package rejection, the driving transition, and recovery. Visual inspection led to visible wheel openings and two-sided workshop signage.
+The dedicated cornering run passed **22 maneuvers and 157 assertions** at 30, 45, 50, 55, and 70 km/h. It measures actual front-wheel pivot angle, axle slip, friction limits, contact-driven marks, and brief-handbrake recovery with countersteering. Full-lock turns retained 32° of steering at every tested speed; gentle 30/45 km/h turns stayed below the sliding peak and left no marks. The two brief-handbrake cases recovered after two seconds of slip-directed countersteering, retaining about 50.5 and 62.2 km/h from 55.2 and 70.0 km/h starts. Results are in `artifacts/cornering-validation.json`, with same-maneuver before/after tire-model measurements in `artifacts/cornering-comparison.json`.
 
-Measured mean controller-plus-`Physics.Simulate` step time was approximately **69–79 µs** in the October 5 run at 360 Hz. This excludes rendering and UI and is not a rendered frame-rate or hardware performance guarantee.
+The **Windows player version 0.2.2 built successfully** at `Builds/Windows/MotorBoundVehiclePrototype.exe` (build summary: 91,787,094 bytes). Keep its adjacent data files when running or copying the player. The 0.2.0 live player checks confirmed workshop startup, missing-hardware rejection, touring installation, incompatible-package rejection, the driving transition, and recovery. Visual inspection led to visible wheel openings and two-sided workshop signage. The new 0.2.2 skid feedback is covered by native contact/geometry checks and awaits the player's feel/visual assessment.
+
+Measured mean controller-plus-`Physics.Simulate` step time was approximately **72–88 µs** in the 0.2.2 driving run at 360 Hz. This excludes rendering and UI and is not a rendered frame-rate or hardware performance guarantee.
 
 From Unity, run **Window > General > Test Runner > EditMode**, then **MotorBound > Validate Driving Physics** outside Play Mode with modified scenes saved. To produce a Windows development player, run this from the repository root (adjust the Editor executable for your installation):
 

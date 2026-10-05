@@ -70,6 +70,18 @@ namespace MotorBound.Product
                     telemetry.LocalAccelerationMetersPerSecondSquared.z),
                 bodyStyle);
             GUILayout.Space(8f);
+            var frontSliding = false;
+            var rearSliding = false;
+            if (telemetry.Wheels != null)
+                for (var index = 0; index < telemetry.Wheels.Length; index++)
+                    if (telemetry.Wheels[index].Grounded && telemetry.Wheels[index].IsSliding)
+                    {
+                        if (index < 2) frontSliding = true;
+                        else rearSliding = true;
+                    }
+            GUILayout.Label("Tires: " + (frontSliding && rearSliding ? "BOTH AXLES SLIDING"
+                : frontSliding ? "FRONT TIRES SLIDING / PUSHING WIDE"
+                : rearSliding ? "REAR TIRES SLIDING" : "GRIPPING"), bodyStyle);
 
             if (telemetry.Wheels != null)
             {

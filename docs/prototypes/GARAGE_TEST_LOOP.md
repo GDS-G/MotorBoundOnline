@@ -2,7 +2,7 @@
 
 The milestone connects one Kiyora Aven's installed assembly to a playable local workshop, test drive, and explicit save/reload loop. It uses the existing vehicle-core foundations to make a supported part change observable in the same vehicle that is driven and saved.
 
-The current checkout is `C:\Users\Michael\OneDrive\Documents\ASR_MotorBound Online\MotorBoundOnline`. Instructions and commands use the repository root, so another checkout can be used without editing source paths. The prototype Editor baseline remains Unity `2022.3.62f2`; the current product version is `0.2.1`.
+The current checkout is `C:\Users\Michael\OneDrive\Documents\ASR_MotorBound Online\MotorBoundOnline`. Instructions and commands use the repository root, so another checkout can be used without editing source paths. The prototype Editor baseline remains Unity `2022.3.62f2`; the current product version is `0.2.2`.
 
 ## Play the acceptance loop
 
@@ -53,6 +53,14 @@ settled root height = tire radius + suspension rest length
 
 Body height, ground clearance, nominal center-of-mass height, and reference approach/departure/breakover angles follow the change in that nominal ride height. Maximum width includes the 1.91 m mirror envelope and track plus tire width. The workshop profile supplies the physical opening and a 2.00 m posted entrance limit. Dynamic pitch, load transfer, suspension motion, and arbitrary accessories require broader envelope handling in later work.
 
+## Tire grip and skid feedback
+
+The steering command still maps directly to the authored maximum wheel angle at every speed; there is no 50 km/h cutoff. At high speed, requesting a tight full-lock turn can exceed front grip and produce understeer: the front tires skid while the rear largely holds. A rear slide depends on the balance of grip, wheelspin, braking, and load transfer, not just the steering key.
+
+Version 0.2.2 replaces independent longitudinal/lateral saturation with one direction-preserving combined-slip demand. The force curve retains the authored stiffness at small slip, peaks continuously at the friction limit, then decreases toward an authored sliding fraction of 0.78. A locked or spinning wheel therefore cannot simultaneously retain almost full lateral grip. This is a compact provisional model, not a fitted full Pacejka model or measured-car calibration. The sine/atan curve structure is informed by [MathWorks' tire-road interaction documentation](https://www.mathworks.com/help/sdl/ref/tireroadinteractionmagicformula.html); combining the demand vector is this prototype's simplifying assumption.
+
+Skid marks use grounded, loaded, post-peak contacts and actual tire width, with a fixed 2,048-segment pool. Contact loss, pause, recovery, and large jumps break trails. They do not appear merely because a steering key is held. The F1 HUD reports front, rear, or both-axle sliding. Gentle steering should remain composed; test hard steering around 50–70 km/h, then compare a brief handbrake input followed by release and countersteering. Holding the handbrake through the entire turn can spin the car.
+
 ## Save format and recovery
 
 The active file is `garage-v1.json` under Unity's `Application.persistentDataPath`, not inside the Git checkout. With this project's current company/product settings, the Windows location is normally:
@@ -76,12 +84,22 @@ If recovery is needed, close the prototype, preserve copies of both the active f
 
 ## Verification
 
-Steering mechanics update on October 5, 2026:
+High-speed tire mechanics update (version 0.2.2) on October 5, 2026:
+
+- **108/108 native EditMode tests passed**, including combined-demand force direction and bounds, post-peak sliding grip, locked/spinning-wheel cornering grip, validated tire parameters, skid geometry at stock/touring widths, bounded mark pooling, lifecycle cleanup, and the existing garage/steering regressions. **15 engine-independent checks passed**.
+- The existing driving run passed **16 maneuvers / 267 assertions** on dry, wet, and rough roads with both packages. Steering input still centered in 83 ms; faster release cases added about 6.1–6.3° of heading over two seconds, with yaw below 0.3°/s at 500 ms.
+- The new native cornering run passed **22 maneuvers / 157 assertions**: gentle/full steering at 30/45/50/55/70 km/h, coast/power/handbrake at 55/70, a left/right mirror, touring checks, and two brief-handbrake recoveries. Actual front-wheel pivots reached full 32° at every tested speed. The force envelope, contact surfaces, upright stability, real post-peak contacts, and marks are measured rather than inferred from key presses.
+- Stock full-lock 50 km/h still produces front-tire understeer, now with contact-driven skid marks. At 70 km/h under full power, body sideslip increased from about 5.3° to 9.6° and late rear tire slip from 4.6° to 10.4°, showing the revised sharing of wheelspin/cornering grip. Holding the handbrake for 1.2 seconds can spin the car; it is not the recovery maneuver.
+- Brief 0.2-second handbrake inputs followed by two seconds of countersteering recovered from 55.2/70.0 km/h starts to 50.5/62.2 km/h. Final yaw magnitude was below 0.04°/s and body sideslip magnitude below 0.002°. Recovery bounds require meaningful opposite steering, final yaw below 5°/s, sideslip below 3°, restored rear rolling throughout the last second, and more than half the starting speed.
+- `artifacts/cornering-validation.json` contains the current measurements; `artifacts/cornering-comparison.json` preserves matching before/after runs. These scripted dry-road cases and skid-mesh tests do not replace human feel/visual playtesting or measured tire calibration.
+- **Windows development player 0.2.2 built successfully**, with a build summary of 91,787,094 bytes. The existing executable path is unchanged; new gameplay code is in its adjacent data directory.
+
+Steering-release update (version 0.2.1) on October 5, 2026:
 
 - Released keyboard steering now centers at 12 normalized units per second, while steering key presses retain the original 3.5 units per second. The actual keyboard update and the native regression scenarios share the same input response.
 - **80/80 native EditMode tests passed**, including full left/right release within 100 ms at 30, 60, and 144 Hz input updates, no opposite steering command during centering, and clearing steering while parked in the garage.
 - Eight added release maneuvers exercise full left/right key presses at two speeds with both wheel packages, followed by two seconds of release without braking. At 60 Hz, input centering improved from **300 ms to 83 ms**. In the faster dry-road cases, additional heading change fell from **17.7–18.4° to 7.2–7.6°**, and yaw rate at 500 ms fell from **6.5–9.6°/s to at most 0.3°/s**.
-- Release regressions require input centering within 100 ms and turning below 1°/s at 500 ms and one second. The car retains its natural physical motion after release; the tire-force and Rigidbody settings are unchanged.
+- Release regressions require input centering within 100 ms and turning below 1°/s at 500 ms and one second. That release-only update left the tire-force and Rigidbody settings unchanged; version 0.2.2 subsequently changed the tire-force curve as described above.
 - These release measurements cover dry-road scenarios. Wet-surface acceleration/braking remains covered by the existing handling tests; wet steering-release calibration and human driving-feel assessment remain future work.
 - The final driving run passed **16 maneuvers and 267 assertions**. The before/after measurements are preserved in `artifacts/steering-release-comparison.json`. The **Windows player 0.2.1 built successfully**, with a build summary of 91,779,237 bytes.
 
@@ -116,6 +134,12 @@ New-Item -ItemType Directory -Path (Join-Path $motorBoundProject 'artifacts') -F
   -executeMethod MotorBound.Editor.PrototypeDrivingValidation.Run `
   -logFile (Join-Path $motorBoundProject 'artifacts/driving-validation.log')
 
+# Rolling-wheel 30–70 km/h cornering, skid marks, and handbrake recovery.
+& $unityEditor -batchmode -nographics -quit `
+  -projectPath $motorBoundProject `
+  -executeMethod MotorBound.Editor.PrototypeCorneringValidation.Run `
+  -logFile (Join-Path $motorBoundProject 'artifacts/cornering-validation.log')
+
 # Engine-independent checks complement native Unity tests.
 dotnet run --project tools/MotorBound.DomainVerification/MotorBound.DomainVerification.csproj
 
@@ -126,7 +150,7 @@ dotnet run --project tools/MotorBound.DomainVerification/MotorBound.DomainVerifi
   -logFile (Join-Path $motorBoundProject 'artifacts/windows-build.log')
 ```
 
-Inspect each run's result before proceeding; a successful compilation is not a successful test or player build. A successful Windows build produces `Builds/Windows/MotorBoundVehiclePrototype.exe` and adjacent required data files. The Editor equivalents are **Window > General > Test Runner > EditMode**, **MotorBound > Validate Driving Physics**, and **MotorBound > Build Windows Prototype**. Save modified scenes before driving validation.
+Inspect each run's result before proceeding; a successful compilation is not a successful test or player build. A successful Windows build produces `Builds/Windows/MotorBoundVehiclePrototype.exe` and adjacent required data files. The Editor equivalents are **Window > General > Test Runner > EditMode**, **MotorBound > Validate Driving Physics**, **MotorBound > Validate Cornering Physics**, and **MotorBound > Build Windows Prototype**. Save modified scenes before driving validation.
 
 ## Boundaries and next work
 

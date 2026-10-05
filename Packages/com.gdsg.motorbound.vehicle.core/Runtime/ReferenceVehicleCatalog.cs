@@ -76,6 +76,7 @@ namespace MotorBound.Vehicle.Core
                     TreadWaterEvacuationFactor = 0.68d,
                     RotationalInertiaKilogramMetersSquared = 1.15d,
                     PeakDryFrictionCoefficient = 1.08d,
+                    SlidingGripRatio = 0.78d,
                     LongitudinalSlipStiffnessNewtonPerRatio = 80000d,
                     CorneringStiffnessNewtonPerRadian = 65000d,
                     RollingResistanceCoefficient = 0.013d,

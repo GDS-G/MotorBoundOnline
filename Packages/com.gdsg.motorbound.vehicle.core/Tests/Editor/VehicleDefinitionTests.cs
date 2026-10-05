@@ -41,5 +41,30 @@ namespace MotorBound.Vehicle.Core.Tests
 
             Assert.That(issues.Any(issue => issue.Path == "engine.fullLoadTorqueCurve[2]"), Is.True);
         }
+
+        [TestCase(0d)]
+        [TestCase(-0.1d)]
+        [TestCase(1.0001d)]
+        [TestCase(double.NaN)]
+        [TestCase(double.PositiveInfinity)]
+        [TestCase(double.NegativeInfinity)]
+        public void Validation_RejectsInvalidSlidingGripRatio(double slidingGripRatio)
+        {
+            var definition = ReferenceVehicleCatalog.CreateKiyoraAvenClubPrototype();
+            definition.Tire.SlidingGripRatio = slidingGripRatio;
+
+            Assert.That(definition.Validate().Any(issue => issue.Path == "tire.slidingGripRatio"), Is.True);
+        }
+
+        [TestCase(0.01d)]
+        [TestCase(0.78d)]
+        [TestCase(1d)]
+        public void Validation_AcceptsSlidingGripRatioWithinRange(double slidingGripRatio)
+        {
+            var definition = ReferenceVehicleCatalog.CreateKiyoraAvenClubPrototype();
+            definition.Tire.SlidingGripRatio = slidingGripRatio;
+
+            Assert.That(definition.Validate(), Is.Empty);
+        }
     }
 }

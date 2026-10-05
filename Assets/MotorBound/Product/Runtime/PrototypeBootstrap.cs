@@ -42,6 +42,7 @@ namespace MotorBound.Product
             input.Configure(controller);
             var garage = root.AddComponent<PrototypeGarageSession>();
             garage.Initialize(controller, input);
+            root.AddComponent<PrototypeSkidTrails>().Configure(controller);
             var workshopPanel = new GameObject("Workshop controls").AddComponent<PrototypeGaragePanel>();
             workshopPanel.Configure(garage);
             return controller;

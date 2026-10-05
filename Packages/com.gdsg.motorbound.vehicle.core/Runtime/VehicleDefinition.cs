@@ -96,6 +96,7 @@ namespace MotorBound.Vehicle.Core
         public double TreadWaterEvacuationFactor = 0.65d;
         public double RotationalInertiaKilogramMetersSquared = 1.15d;
         public double PeakDryFrictionCoefficient = 1.08d;
+        public double SlidingGripRatio = 0.78d;
         public double LongitudinalSlipStiffnessNewtonPerRatio = 80000d;
         public double CorneringStiffnessNewtonPerRadian = 65000d;
         public double RollingResistanceCoefficient = 0.013d;
@@ -221,6 +222,9 @@ namespace MotorBound.Vehicle.Core
                     "Water evacuation factor must be in [0, 1].",
                     issues);
                 Require(Tire.PeakDryFrictionCoefficient > 0d, "tire.peakDryFrictionCoefficient", "Peak friction must be positive.", issues);
+                Require(!double.IsNaN(Tire.SlidingGripRatio) && !double.IsInfinity(Tire.SlidingGripRatio)
+                        && Tire.SlidingGripRatio > 0d && Tire.SlidingGripRatio <= 1d,
+                    "tire.slidingGripRatio", "Sliding grip ratio must be finite and in (0, 1].", issues);
             }
 
             return issues;

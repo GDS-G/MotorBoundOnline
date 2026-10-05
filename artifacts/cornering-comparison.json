@@ -1,0 +1,470 @@
+{
+  "BaselineSource": "Native Unity run before the 0.2.2 combined-slip/sliding-force change; version 0.2.1 physics.",
+  "BaselineGeneratedUtc": "2026-10-05T17:24:30.2204824Z",
+  "UpdatedGeneratedUtc": "2026-10-05T17:34:57.8730307Z",
+  "UnityVersion": "2022.3.62f2",
+  "SimulationHertz": 360,
+  "Scope": "Same rolling-wheel 60 Hz input / 360 Hz Unity maneuvers. Full steering remains authored 32 degrees; front understeer is not forced into rear oversteer. New mark/recovery checks are in cornering-validation.json.",
+  "Maneuvers": [
+    {
+      "Name": "Stock road 205 / 30 km/h / gentle",
+      "Before": {
+        "SpeedAtTurnKilometersPerHour": 30.299238204956055,
+        "AppliedSteeringDegreesAfter300Milliseconds": 3.8400001525878906,
+        "MeanLateFrontSlipAngleDegrees": 0.5121223330497742,
+        "MeanLateRearSlipAngleDegrees": 0.566731333732605,
+        "PeakBodySideslipDegrees": 1.3173949718475342,
+        "FinalYawRateDegreesPerSecond": 14.355534553527832,
+        "HeadingChangeDegrees": 16.47477912902832,
+        "SpeedAfterTurnKilometersPerHour": 31.13892364501953
+      },
+      "After": {
+        "SpeedAtTurnKilometersPerHour": 30.037282943725586,
+        "AppliedSteeringDegreesAfter300Milliseconds": 3.8400001525878906,
+        "MeanLateFrontSlipAngleDegrees": 0.5318200588226318,
+        "MeanLateRearSlipAngleDegrees": 0.6064414978027344,
+        "PeakBodySideslipDegrees": 1.2858575582504272,
+        "FinalYawRateDegreesPerSecond": 13.984101295471191,
+        "HeadingChangeDegrees": 16.189823150634766,
+        "SpeedAfterTurnKilometersPerHour": 30.493305206298828
+      }
+    },
+    {
+      "Name": "Stock road 205 / 30 km/h / hard",
+      "Before": {
+        "SpeedAtTurnKilometersPerHour": 30.299238204956055,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 14.491823196411133,
+        "MeanLateRearSlipAngleDegrees": 3.022810459136963,
+        "PeakBodySideslipDegrees": 7.098776817321777,
+        "FinalYawRateDegreesPerSecond": 61.948150634765625,
+        "HeadingChangeDegrees": 59.9915771484375,
+        "SpeedAfterTurnKilometersPerHour": 24.35280418395996
+      },
+      "After": {
+        "SpeedAtTurnKilometersPerHour": 30.037282943725586,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 11.685800552368164,
+        "MeanLateRearSlipAngleDegrees": 3.244997978210449,
+        "PeakBodySideslipDegrees": 8.569440841674805,
+        "FinalYawRateDegreesPerSecond": 71.66488647460938,
+        "HeadingChangeDegrees": 64.60568237304688,
+        "SpeedAfterTurnKilometersPerHour": 23.61301040649414
+      }
+    },
+    {
+      "Name": "Stock road 205 / 45 km/h / gentle",
+      "Before": {
+        "SpeedAtTurnKilometersPerHour": 45.18402862548828,
+        "AppliedSteeringDegreesAfter300Milliseconds": 3.8400001525878906,
+        "MeanLateFrontSlipAngleDegrees": 1.1865882873535156,
+        "MeanLateRearSlipAngleDegrees": 1.3538051843643188,
+        "PeakBodySideslipDegrees": 0.6338773965835571,
+        "FinalYawRateDegreesPerSecond": 21.556062698364258,
+        "HeadingChangeDegrees": 24.31040382385254,
+        "SpeedAfterTurnKilometersPerHour": 45.52633285522461
+      },
+      "After": {
+        "SpeedAtTurnKilometersPerHour": 45.206565856933594,
+        "AppliedSteeringDegreesAfter300Milliseconds": 3.8400001525878906,
+        "MeanLateFrontSlipAngleDegrees": 1.1463987827301025,
+        "MeanLateRearSlipAngleDegrees": 1.305604100227356,
+        "PeakBodySideslipDegrees": 0.6635662913322449,
+        "FinalYawRateDegreesPerSecond": 21.182708740234375,
+        "HeadingChangeDegrees": 24.107444763183594,
+        "SpeedAfterTurnKilometersPerHour": 44.83156204223633
+      }
+    },
+    {
+      "Name": "Stock road 205 / 45 km/h / hard",
+      "Before": {
+        "SpeedAtTurnKilometersPerHour": 45.18402862548828,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 25.5067195892334,
+        "MeanLateRearSlipAngleDegrees": 3.9312515258789062,
+        "PeakBodySideslipDegrees": 1.5351407527923584,
+        "FinalYawRateDegreesPerSecond": 46.58527755737305,
+        "HeadingChangeDegrees": 49.70993423461914,
+        "SpeedAfterTurnKilometersPerHour": 35.845149993896484
+      },
+      "After": {
+        "SpeedAtTurnKilometersPerHour": 45.206565856933594,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 25.161924362182617,
+        "MeanLateRearSlipAngleDegrees": 2.698275566101074,
+        "PeakBodySideslipDegrees": 2.012568473815918,
+        "FinalYawRateDegreesPerSecond": 43.796443939208984,
+        "HeadingChangeDegrees": 45.06648254394531,
+        "SpeedAfterTurnKilometersPerHour": 36.27521514892578
+      }
+    },
+    {
+      "Name": "Stock road 205 / 50 km/h / gentle",
+      "Before": {
+        "SpeedAtTurnKilometersPerHour": 50.10953140258789,
+        "AppliedSteeringDegreesAfter300Milliseconds": 3.8400001525878906,
+        "MeanLateFrontSlipAngleDegrees": 1.5409857034683228,
+        "MeanLateRearSlipAngleDegrees": 1.7576959133148193,
+        "PeakBodySideslipDegrees": 0.5208274126052856,
+        "FinalYawRateDegreesPerSecond": 23.956174850463867,
+        "HeadingChangeDegrees": 26.8754940032959,
+        "SpeedAfterTurnKilometersPerHour": 50.007022857666016
+      },
+      "After": {
+        "SpeedAtTurnKilometersPerHour": 50.03030014038086,
+        "AppliedSteeringDegreesAfter300Milliseconds": 3.8400001525878906,
+        "MeanLateFrontSlipAngleDegrees": 1.4946805238723755,
+        "MeanLateRearSlipAngleDegrees": 1.7066547870635986,
+        "PeakBodySideslipDegrees": 0.5473752021789551,
+        "FinalYawRateDegreesPerSecond": 23.67348289489746,
+        "HeadingChangeDegrees": 26.74001693725586,
+        "SpeedAfterTurnKilometersPerHour": 49.47893524169922
+      }
+    },
+    {
+      "Name": "Stock road 205 / 50 km/h / hard",
+      "Before": {
+        "SpeedAtTurnKilometersPerHour": 50.10953140258789,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 27.83846664428711,
+        "MeanLateRearSlipAngleDegrees": 4.007081508636475,
+        "PeakBodySideslipDegrees": 1.6028152704238892,
+        "FinalYawRateDegreesPerSecond": 40.643123626708984,
+        "HeadingChangeDegrees": 45.9010009765625,
+        "SpeedAfterTurnKilometersPerHour": 40.00845718383789
+      },
+      "After": {
+        "SpeedAtTurnKilometersPerHour": 50.03030014038086,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 27.133922576904297,
+        "MeanLateRearSlipAngleDegrees": 2.5934805870056152,
+        "PeakBodySideslipDegrees": 1.0945994853973389,
+        "FinalYawRateDegreesPerSecond": 38.88596725463867,
+        "HeadingChangeDegrees": 41.05421447753906,
+        "SpeedAfterTurnKilometersPerHour": 40.817718505859375
+      }
+    },
+    {
+      "Name": "Stock road 205 / 55 km/h / gentle",
+      "Before": {
+        "SpeedAtTurnKilometersPerHour": 55.00856399536133,
+        "AppliedSteeringDegreesAfter300Milliseconds": 3.8400001525878906,
+        "MeanLateFrontSlipAngleDegrees": 2.0570530891418457,
+        "MeanLateRearSlipAngleDegrees": 2.330012321472168,
+        "PeakBodySideslipDegrees": 0.4703793525695801,
+        "FinalYawRateDegreesPerSecond": 26.28453254699707,
+        "HeadingChangeDegrees": 29.418701171875,
+        "SpeedAfterTurnKilometersPerHour": 54.13705825805664
+      },
+      "After": {
+        "SpeedAtTurnKilometersPerHour": 55.19981384277344,
+        "AppliedSteeringDegreesAfter300Milliseconds": 3.8400001525878906,
+        "MeanLateFrontSlipAngleDegrees": 2.06823468208313,
+        "MeanLateRearSlipAngleDegrees": 2.3435275554656982,
+        "PeakBodySideslipDegrees": 0.48195213079452515,
+        "FinalYawRateDegreesPerSecond": 26.386112213134766,
+        "HeadingChangeDegrees": 29.512279510498047,
+        "SpeedAfterTurnKilometersPerHour": 54.3171501159668
+      }
+    },
+    {
+      "Name": "Stock road 205 / 55 km/h / hard",
+      "Before": {
+        "SpeedAtTurnKilometersPerHour": 55.00856399536133,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 29.626096725463867,
+        "MeanLateRearSlipAngleDegrees": 4.175693511962891,
+        "PeakBodySideslipDegrees": 2.8011419773101807,
+        "FinalYawRateDegreesPerSecond": 35.78525924682617,
+        "HeadingChangeDegrees": 43.10197067260742,
+        "SpeedAfterTurnKilometersPerHour": 43.766719818115234
+      },
+      "After": {
+        "SpeedAtTurnKilometersPerHour": 55.19981384277344,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 28.622316360473633,
+        "MeanLateRearSlipAngleDegrees": 2.493337631225586,
+        "PeakBodySideslipDegrees": 1.4795626401901245,
+        "FinalYawRateDegreesPerSecond": 34.82569122314453,
+        "HeadingChangeDegrees": 37.472869873046875,
+        "SpeedAfterTurnKilometersPerHour": 45.760162353515625
+      }
+    },
+    {
+      "Name": "Stock road 205 / 70 km/h / gentle",
+      "Before": {
+        "SpeedAtTurnKilometersPerHour": 70.11499786376953,
+        "AppliedSteeringDegreesAfter300Milliseconds": 3.8400001525878906,
+        "MeanLateFrontSlipAngleDegrees": 6.09456205368042,
+        "MeanLateRearSlipAngleDegrees": 6.236612319946289,
+        "PeakBodySideslipDegrees": 4.732102394104004,
+        "FinalYawRateDegreesPerSecond": 31.732017517089844,
+        "HeadingChangeDegrees": 35.146156311035156,
+        "SpeedAfterTurnKilometersPerHour": 67.29048919677734
+      },
+      "After": {
+        "SpeedAtTurnKilometersPerHour": 70.04570007324219,
+        "AppliedSteeringDegreesAfter300Milliseconds": 3.8400001525878906,
+        "MeanLateFrontSlipAngleDegrees": 5.99621057510376,
+        "MeanLateRearSlipAngleDegrees": 6.094518661499023,
+        "PeakBodySideslipDegrees": 4.559573650360107,
+        "FinalYawRateDegreesPerSecond": 31.252866744995117,
+        "HeadingChangeDegrees": 35.02268981933594,
+        "SpeedAfterTurnKilometersPerHour": 67.2505874633789
+      }
+    },
+    {
+      "Name": "Stock road 205 / 70 km/h / hard",
+      "Before": {
+        "SpeedAtTurnKilometersPerHour": 70.11499786376953,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 33.40701675415039,
+        "MeanLateRearSlipAngleDegrees": 4.705790996551514,
+        "PeakBodySideslipDegrees": 5.0174078941345215,
+        "FinalYawRateDegreesPerSecond": 22.751604080200195,
+        "HeadingChangeDegrees": 35.03484344482422,
+        "SpeedAfterTurnKilometersPerHour": 57.91658401489258
+      },
+      "After": {
+        "SpeedAtTurnKilometersPerHour": 70.04570007324219,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 30.99880027770996,
+        "MeanLateRearSlipAngleDegrees": 2.2347404956817627,
+        "PeakBodySideslipDegrees": 3.1300580501556396,
+        "FinalYawRateDegreesPerSecond": 27.349882125854492,
+        "HeadingChangeDegrees": 29.97648811340332,
+        "SpeedAfterTurnKilometersPerHour": 60.11201477050781
+      }
+    },
+    {
+      "Name": "Stock road 205 / 55 km/h / coasting hard",
+      "Before": {
+        "SpeedAtTurnKilometersPerHour": 55.00856399536133,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 31.177600860595703,
+        "MeanLateRearSlipAngleDegrees": 7.998785972595215,
+        "PeakBodySideslipDegrees": 4.769768714904785,
+        "FinalYawRateDegreesPerSecond": 39.36994171142578,
+        "HeadingChangeDegrees": 49.50456619262695,
+        "SpeedAfterTurnKilometersPerHour": 37.86333465576172
+      },
+      "After": {
+        "SpeedAtTurnKilometersPerHour": 55.19981384277344,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 28.296993255615234,
+        "MeanLateRearSlipAngleDegrees": 3.0567407608032227,
+        "PeakBodySideslipDegrees": 2.1819968223571777,
+        "FinalYawRateDegreesPerSecond": 36.72425842285156,
+        "HeadingChangeDegrees": 40.69553756713867,
+        "SpeedAfterTurnKilometersPerHour": 40.488197326660156
+      }
+    },
+    {
+      "Name": "Stock road 205 / 55 km/h / power hard",
+      "Before": {
+        "SpeedAtTurnKilometersPerHour": 55.00856399536133,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 32.12184524536133,
+        "MeanLateRearSlipAngleDegrees": 4.12828254699707,
+        "PeakBodySideslipDegrees": 3.575303554534912,
+        "FinalYawRateDegreesPerSecond": 25.990591049194336,
+        "HeadingChangeDegrees": 36.70969009399414,
+        "SpeedAfterTurnKilometersPerHour": 55.89698791503906
+      },
+      "After": {
+        "SpeedAtTurnKilometersPerHour": 55.19981384277344,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 33.71296310424805,
+        "MeanLateRearSlipAngleDegrees": 4.842226505279541,
+        "PeakBodySideslipDegrees": 3.887281894683838,
+        "FinalYawRateDegreesPerSecond": 19.49217414855957,
+        "HeadingChangeDegrees": 32.278076171875,
+        "SpeedAfterTurnKilometersPerHour": 60.71443176269531
+      }
+    },
+    {
+      "Name": "Stock road 205 / 55 km/h / handbrake hard",
+      "Before": {
+        "SpeedAtTurnKilometersPerHour": 55.00856399536133,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 39.41490173339844,
+        "MeanLateRearSlipAngleDegrees": 27.87856101989746,
+        "PeakBodySideslipDegrees": 24.819791793823242,
+        "FinalYawRateDegreesPerSecond": 70.97488403320312,
+        "HeadingChangeDegrees": 67.72764587402344,
+        "SpeedAfterTurnKilometersPerHour": 24.552881240844727
+      },
+      "After": {
+        "SpeedAtTurnKilometersPerHour": 55.19981384277344,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 55.20263671875,
+        "MeanLateRearSlipAngleDegrees": 76.3129653930664,
+        "PeakBodySideslipDegrees": 89.25175476074219,
+        "FinalYawRateDegreesPerSecond": 129.69056701660156,
+        "HeadingChangeDegrees": 120.223876953125,
+        "SpeedAfterTurnKilometersPerHour": 23.482439041137695
+      }
+    },
+    {
+      "Name": "Stock road 205 / 70 km/h / coasting hard",
+      "Before": {
+        "SpeedAtTurnKilometersPerHour": 70.11499786376953,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 37.90090560913086,
+        "MeanLateRearSlipAngleDegrees": 11.2298583984375,
+        "PeakBodySideslipDegrees": 8.99636459350586,
+        "FinalYawRateDegreesPerSecond": 30.358095169067383,
+        "HeadingChangeDegrees": 43.474754333496094,
+        "SpeedAfterTurnKilometersPerHour": 51.15391159057617
+      },
+      "After": {
+        "SpeedAtTurnKilometersPerHour": 70.04570007324219,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 31.99345588684082,
+        "MeanLateRearSlipAngleDegrees": 3.159034490585327,
+        "PeakBodySideslipDegrees": 4.395013332366943,
+        "FinalYawRateDegreesPerSecond": 24.31205940246582,
+        "HeadingChangeDegrees": 32.39373779296875,
+        "SpeedAfterTurnKilometersPerHour": 54.35740661621094
+      }
+    },
+    {
+      "Name": "Stock road 205 / 70 km/h / power hard",
+      "Before": {
+        "SpeedAtTurnKilometersPerHour": 70.11499786376953,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 34.501094818115234,
+        "MeanLateRearSlipAngleDegrees": 4.569935321807861,
+        "PeakBodySideslipDegrees": 5.331904411315918,
+        "FinalYawRateDegreesPerSecond": 16.321685791015625,
+        "HeadingChangeDegrees": 30.218891143798828,
+        "SpeedAfterTurnKilometersPerHour": 71.0879135131836
+      },
+      "After": {
+        "SpeedAtTurnKilometersPerHour": 70.04570007324219,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 40.136539459228516,
+        "MeanLateRearSlipAngleDegrees": 10.356698036193848,
+        "PeakBodySideslipDegrees": 9.564159393310547,
+        "FinalYawRateDegreesPerSecond": 14.528925895690918,
+        "HeadingChangeDegrees": 32.28263473510742,
+        "SpeedAfterTurnKilometersPerHour": 74.25824737548828
+      }
+    },
+    {
+      "Name": "Stock road 205 / 70 km/h / handbrake hard",
+      "Before": {
+        "SpeedAtTurnKilometersPerHour": 70.11499786376953,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 52.7729377746582,
+        "MeanLateRearSlipAngleDegrees": 34.295936584472656,
+        "PeakBodySideslipDegrees": 37.997520446777344,
+        "FinalYawRateDegreesPerSecond": 76.19761657714844,
+        "HeadingChangeDegrees": 66.47511291503906,
+        "SpeedAfterTurnKilometersPerHour": 37.54634094238281
+      },
+      "After": {
+        "SpeedAtTurnKilometersPerHour": 70.04570007324219,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 57.07821273803711,
+        "MeanLateRearSlipAngleDegrees": 78.36193084716797,
+        "PeakBodySideslipDegrees": 89.51688385009766,
+        "FinalYawRateDegreesPerSecond": 135.8349609375,
+        "HeadingChangeDegrees": 119.7983627319336,
+        "SpeedAfterTurnKilometersPerHour": 38.21198654174805
+      }
+    },
+    {
+      "Name": "Stock road 205 / 50 km/h / left hard mirror",
+      "Before": {
+        "SpeedAtTurnKilometersPerHour": 50.10953140258789,
+        "AppliedSteeringDegreesAfter300Milliseconds": -32,
+        "MeanLateFrontSlipAngleDegrees": 27.83713150024414,
+        "MeanLateRearSlipAngleDegrees": 4.004753589630127,
+        "PeakBodySideslipDegrees": 1.605098009109497,
+        "FinalYawRateDegreesPerSecond": -40.64571762084961,
+        "HeadingChangeDegrees": -45.9132080078125,
+        "SpeedAfterTurnKilometersPerHour": 40.00748825073242
+      },
+      "After": {
+        "SpeedAtTurnKilometersPerHour": 50.03030014038086,
+        "AppliedSteeringDegreesAfter300Milliseconds": -32,
+        "MeanLateFrontSlipAngleDegrees": 27.134220123291016,
+        "MeanLateRearSlipAngleDegrees": 2.5937130451202393,
+        "PeakBodySideslipDegrees": 1.094480037689209,
+        "FinalYawRateDegreesPerSecond": -38.884849548339844,
+        "HeadingChangeDegrees": -41.049835205078125,
+        "SpeedAfterTurnKilometersPerHour": 40.81795120239258
+      }
+    },
+    {
+      "Name": "Touring 225 / 55 km/h / gentle",
+      "Before": {
+        "SpeedAtTurnKilometersPerHour": 55.20440673828125,
+        "AppliedSteeringDegreesAfter300Milliseconds": 3.8400001525878906,
+        "MeanLateFrontSlipAngleDegrees": 2.101428270339966,
+        "MeanLateRearSlipAngleDegrees": 2.3809597492218018,
+        "PeakBodySideslipDegrees": 0.5205205082893372,
+        "FinalYawRateDegreesPerSecond": 26.39410972595215,
+        "HeadingChangeDegrees": 29.48363494873047,
+        "SpeedAfterTurnKilometersPerHour": 54.27627944946289
+      },
+      "After": {
+        "SpeedAtTurnKilometersPerHour": 55.13920593261719,
+        "AppliedSteeringDegreesAfter300Milliseconds": 3.8400001525878906,
+        "MeanLateFrontSlipAngleDegrees": 2.075000286102295,
+        "MeanLateRearSlipAngleDegrees": 2.3539791107177734,
+        "PeakBodySideslipDegrees": 0.4932430684566498,
+        "FinalYawRateDegreesPerSecond": 26.363101959228516,
+        "HeadingChangeDegrees": 29.476511001586914,
+        "SpeedAfterTurnKilometersPerHour": 54.22137451171875
+      }
+    },
+    {
+      "Name": "Touring 225 / 55 km/h / hard",
+      "Before": {
+        "SpeedAtTurnKilometersPerHour": 55.20440673828125,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 29.830583572387695,
+        "MeanLateRearSlipAngleDegrees": 4.321249961853027,
+        "PeakBodySideslipDegrees": 2.9367592334747314,
+        "FinalYawRateDegreesPerSecond": 35.2539176940918,
+        "HeadingChangeDegrees": 43.075626373291016,
+        "SpeedAfterTurnKilometersPerHour": 43.903106689453125
+      },
+      "After": {
+        "SpeedAtTurnKilometersPerHour": 55.13920593261719,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 28.636289596557617,
+        "MeanLateRearSlipAngleDegrees": 2.514136552810669,
+        "PeakBodySideslipDegrees": 1.5413775444030762,
+        "FinalYawRateDegreesPerSecond": 34.8427848815918,
+        "HeadingChangeDegrees": 37.5433235168457,
+        "SpeedAfterTurnKilometersPerHour": 45.69746017456055
+      }
+    },
+    {
+      "Name": "Touring 225 / 70 km/h / handbrake hard",
+      "Before": {
+        "SpeedAtTurnKilometersPerHour": 70.08455657958984,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 52.6907844543457,
+        "MeanLateRearSlipAngleDegrees": 34.53086471557617,
+        "PeakBodySideslipDegrees": 38.413997650146484,
+        "FinalYawRateDegreesPerSecond": 80.0180892944336,
+        "HeadingChangeDegrees": 67.09796905517578,
+        "SpeedAfterTurnKilometersPerHour": 37.44975662231445
+      },
+      "After": {
+        "SpeedAtTurnKilometersPerHour": 70.02171325683594,
+        "AppliedSteeringDegreesAfter300Milliseconds": 32,
+        "MeanLateFrontSlipAngleDegrees": 57.207908630371094,
+        "MeanLateRearSlipAngleDegrees": 78.33149719238281,
+        "PeakBodySideslipDegrees": 89.51763153076172,
+        "FinalYawRateDegreesPerSecond": 136.29086303710938,
+        "HeadingChangeDegrees": 120.03733825683594,
+        "SpeedAfterTurnKilometersPerHour": 38.25777816772461
+      }
+    }
+  ]
+}
