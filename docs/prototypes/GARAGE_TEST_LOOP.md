@@ -2,7 +2,7 @@
 
 The milestone connects one Kiyora Aven's installed assembly to a playable local workshop, test drive, and explicit save/reload loop. It uses the existing vehicle-core foundations to make a supported part change observable in the same vehicle that is driven and saved.
 
-The current checkout is `C:\Users\Michael\OneDrive\Documents\ASR_MotorBound Online\MotorBoundOnline`. Instructions and commands use the repository root, so another checkout can be used without editing source paths. The prototype Editor baseline remains Unity `2022.3.62f2`; the current product version is `0.2.2`.
+The current checkout is `C:\Users\Michael\OneDrive\Documents\ASR_MotorBound Online\MotorBoundOnline`. Instructions and commands use the repository root, so another checkout can be used without editing source paths. The prototype Editor baseline remains Unity `2022.3.62f2`; the current product version is `0.2.3`.
 
 ## Play the acceptance loop
 
@@ -83,6 +83,13 @@ The save store:
 If recovery is needed, close the prototype, preserve copies of both the active file and any backup, and inspect the reported problem. An independently verified valid backup can be copied into the active location after the original is retained elsewhere. Do not edit arbitrary part values to bypass validation. A future schema needs an explicit migration; none is implemented here.
 
 ## Verification
+
+Packaged-player startup hotfix (version 0.2.3) on October 5, 2026:
+
+- Reproduced the rendered 0.2.2 startup failure. The fresh player log traced `ArgumentNullException`, parameter `shader`, to `PrototypeSkidTrails.Configure`: `Standard` existed in the Editor but had no retained player-build reference.
+- Added a lightweight `MotorBound/PrototypeSkidRubber` shader under Resources and explicitly loaded it for the skid material. Fallbacks are checked before allocation; optional material properties are assigned only when present. [Unity's Shader.Find documentation](https://docs.unity3d.com/2022.3/Documentation/ScriptReference/Shader.Find.html) describes this Editor-versus-player inclusion difference.
+- **109/109 native EditMode tests passed**, including the new resource-loading, shader-import, and actual material-binding check. The build log confirms compilation and inclusion of the skid shader. **Windows player 0.2.3 built successfully**, reporting 91,792,018 bytes.
+- Rendered Windows checks passed for workshop startup, `T` test-drive transition, and `F6` recovery with no player-log exceptions. No player save was created or overwritten. This verifies the startup correction, not a new high-speed driving-feel playtest; tire forces and input response remain unchanged from 0.2.2.
 
 High-speed tire mechanics update (version 0.2.2) on October 5, 2026:
 

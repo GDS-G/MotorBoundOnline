@@ -32,10 +32,20 @@ namespace MotorBound.Product
 
         public int SegmentCount { get; private set; }
         public Mesh TrailMesh => trailMesh;
+        public const string RubberShaderResourcePath = "PrototypeSkidRubber";
 
         public void Configure(RaycastVehicleController target)
         {
             if (target == null) throw new ArgumentNullException(nameof(target));
+            // A Resources shader is an explicit player-build dependency. Editor-only
+            // Shader.Find("Standard") succeeded in tests but was stripped from 0.2.2.
+            var rubberShader = Resources.Load<Shader>(RubberShaderResourcePath)
+                ?? Shader.Find("Legacy Shaders/Diffuse") ?? Shader.Find("Unlit/Color");
+            if (rubberShader == null)
+            {
+                Debug.LogError("Prototype skid marks disabled: no retained rubber shader is available.", this);
+                return;
+            }
             controller = target;
             BreakContacts();
             hasVehiclePosition = false;
@@ -69,12 +79,12 @@ namespace MotorBound.Product
             trailMesh.normals = normals;
             trailMesh.triangles = triangles;
             trailRoot.GetComponent<MeshFilter>().sharedMesh = trailMesh;
-            trailMaterial = new Material(Shader.Find("Standard"))
+            trailMaterial = new Material(rubberShader)
             {
                 name = "Prototype skid rubber",
                 color = new Color(0.022f, 0.024f, 0.025f, 1f)
             };
-            trailMaterial.SetFloat("_Glossiness", 0.02f);
+            if (trailMaterial.HasProperty("_Glossiness")) trailMaterial.SetFloat("_Glossiness", 0.02f);
             var renderer = trailRoot.GetComponent<MeshRenderer>();
             renderer.sharedMaterial = trailMaterial;
             renderer.shadowCastingMode = ShadowCastingMode.Off;

@@ -1,0 +1,38 @@
+{
+  "GeneratedUtc": "2026-10-05 17:47:19 UTC",
+  "PlayerVersion": "0.2.3",
+  "UnityVersion": "2022.3.62f2",
+  "BaselineVersion": "0.2.2",
+  "BaselineFailure": {
+    "ReproducedInRenderedPlayer": true,
+    "Exception": "ArgumentNullException",
+    "Parameter": "shader",
+    "Source": "PrototypeSkidTrails.Configure",
+    "Cause": "Standard was found in Editor but not included in the player build."
+  },
+  "Correction": {
+    "Shader": "MotorBound/PrototypeSkidRubber",
+    "ExplicitBuildResource": "Assets/MotorBound/Product/Resources/PrototypeSkidRubber.shader",
+    "PlayerBuildLogConfirmedCompilationAndInclusion": true,
+    "NullCheckedFallbacks": true,
+    "PhysicsAndInputResponseUnchanged": true
+  },
+  "NativeTests": {
+    "Total": 109,
+    "Passed": 109,
+    "Failed": 0
+  },
+  "WindowsBuild": {
+    "Succeeded": true,
+    "SummaryBytes": 91792018
+  },
+  "RenderedPlayerChecks": {
+    "Renderer": "Direct3D 11",
+    "WorkshopStartup": true,
+    "TestDriveTransition": true,
+    "GarageRecovery": true,
+    "FreshPlayerLogExceptionCount": 0,
+    "SaveCreatedOrOverwritten": false
+  },
+  "Scope": "Rendered startup/transition/recovery smoke test, plus native resource/material tests. Not a new high-speed driving-feel or skid-mark pixel-visibility playtest."
+}

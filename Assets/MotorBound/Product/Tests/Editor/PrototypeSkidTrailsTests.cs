@@ -34,6 +34,19 @@ namespace MotorBound.Product.Tests
         }
 
         [Test]
+        public void RubberMaterial_BindsRetainedResourceShaderWithoutCompileErrors()
+        {
+            var resource = Resources.Load<Shader>(PrototypeSkidTrails.RubberShaderResourcePath);
+            Assert.That(resource, Is.Not.Null, "The procedural tire-mark shader must be an explicit player-build resource.");
+            Assert.That(UnityEditor.ShaderUtil.ShaderHasError(resource), Is.False,
+                "The retained shader must import without compilation errors.");
+            var material = FindTrailFilter().GetComponent<MeshRenderer>().sharedMaterial;
+            Assert.That(material, Is.Not.Null);
+            Assert.That(material.shader, Is.SameAs(resource),
+                "Gameplay must use the retained resource, rather than an Editor-only Shader.Find result.");
+        }
+
+        [Test]
         public void GrippingContacts_DoNotMarkEvenWithFullSteering()
         {
             controller.SetInput(new VehicleInputState(0f, 0f, 1f, 0f));
