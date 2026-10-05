@@ -2,7 +2,7 @@
 
 The milestone connects one Kiyora Aven's installed assembly to a playable local workshop, test drive, and explicit save/reload loop. It uses the existing vehicle-core foundations to make a supported part change observable in the same vehicle that is driven and saved.
 
-The current checkout is `C:\Users\Michael\OneDrive\Documents\ASR_MotorBound Online\MotorBoundOnline`. Instructions and commands use the repository root, so another checkout can be used without editing source paths. The prototype Editor baseline remains Unity `2022.3.62f2`; the product version is `0.2.0`.
+The current checkout is `C:\Users\Michael\OneDrive\Documents\ASR_MotorBound Online\MotorBoundOnline`. Instructions and commands use the repository root, so another checkout can be used without editing source paths. The prototype Editor baseline remains Unity `2022.3.62f2`; the current product version is `0.2.1`.
 
 ## Play the acceptance loop
 
@@ -75,6 +75,15 @@ The save store:
 If recovery is needed, close the prototype, preserve copies of both the active file and any backup, and inspect the reported problem. An independently verified valid backup can be copied into the active location after the original is retained elsewhere. Do not edit arbitrary part values to bypass validation. A future schema needs an explicit migration; none is implemented here.
 
 ## Verification
+
+Steering mechanics update on October 5, 2026:
+
+- Released keyboard steering now centers at 12 normalized units per second, while steering key presses retain the original 3.5 units per second. The actual keyboard update and the native regression scenarios share the same input response.
+- **80/80 native EditMode tests passed**, including full left/right release within 100 ms at 30, 60, and 144 Hz input updates, no opposite steering command during centering, and clearing steering while parked in the garage.
+- Eight added release maneuvers exercise full left/right key presses at two speeds with both wheel packages, followed by two seconds of release without braking. At 60 Hz, input centering improved from **300 ms to 83 ms**. In the faster dry-road cases, additional heading change fell from **17.7–18.4° to 7.2–7.6°**, and yaw rate at 500 ms fell from **6.5–9.6°/s to at most 0.3°/s**.
+- Release regressions require input centering within 100 ms and turning below 1°/s at 500 ms and one second. The car retains its natural physical motion after release; the tire-force and Rigidbody settings are unchanged.
+- These release measurements cover dry-road scenarios. Wet-surface acceleration/braking remains covered by the existing handling tests; wet steering-release calibration and human driving-feel assessment remain future work.
+- The final driving run passed **16 maneuvers and 267 assertions**. The before/after measurements are preserved in `artifacts/steering-release-comparison.json`. The **Windows player 0.2.1 built successfully**, with a build summary of 91,779,237 bytes.
 
 Native verification on October 1, 2026:
 

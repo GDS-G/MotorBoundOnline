@@ -1,0 +1,80 @@
+{
+  "GeneratedUtc": "2026-10-05T17:05:06.9420539Z",
+  "InputUpdatesPerSecond": 60,
+  "PhysicsUpdatesPerSecond": 360,
+  "Description": "Matched native dry-road keyboard release scenarios; only centering rate changed from 3.5 to 12 normalized units per second. No braking after release.",
+  "Scenarios": [
+    {
+      "Name": "Stock road 205 / Moderate speed left steering release",
+      "BeforeCenteringSeconds": 0.30000001192092896,
+      "AfterCenteringSeconds": 0.0833333358168602,
+      "BeforeAdditionalHeadingDegrees": -9.21246337890625,
+      "AfterAdditionalHeadingDegrees": -4.72906494140625,
+      "BeforeYawRateAt500MillisecondsDegreesPerSecond": -0.0837131142616272,
+      "AfterYawRateAt500MillisecondsDegreesPerSecond": -0.04250621050596237
+    },
+    {
+      "Name": "Stock road 205 / Moderate speed right steering release",
+      "BeforeCenteringSeconds": 0.30000001192092896,
+      "AfterCenteringSeconds": 0.0833333358168602,
+      "BeforeAdditionalHeadingDegrees": 9.210270881652832,
+      "AfterAdditionalHeadingDegrees": 4.7267913818359375,
+      "BeforeYawRateAt500MillisecondsDegreesPerSecond": 0.08369351923465729,
+      "AfterYawRateAt500MillisecondsDegreesPerSecond": 0.04249287024140358
+    },
+    {
+      "Name": "Stock road 205 / Faster speed left steering release",
+      "BeforeCenteringSeconds": 0.30000001192092896,
+      "AfterCenteringSeconds": 0.0833333358168602,
+      "BeforeAdditionalHeadingDegrees": -18.41888427734375,
+      "AfterAdditionalHeadingDegrees": -7.6375732421875,
+      "BeforeYawRateAt500MillisecondsDegreesPerSecond": -9.640069961547852,
+      "AfterYawRateAt500MillisecondsDegreesPerSecond": -0.2997363209724426
+    },
+    {
+      "Name": "Stock road 205 / Faster speed right steering release",
+      "BeforeCenteringSeconds": 0.30000001192092896,
+      "AfterCenteringSeconds": 0.0833333358168602,
+      "BeforeAdditionalHeadingDegrees": 18.42010498046875,
+      "AfterAdditionalHeadingDegrees": 7.635882377624512,
+      "BeforeYawRateAt500MillisecondsDegreesPerSecond": 9.636534690856934,
+      "AfterYawRateAt500MillisecondsDegreesPerSecond": 0.29900607466697693
+    },
+    {
+      "Name": "Touring 225 / Moderate speed left steering release",
+      "BeforeCenteringSeconds": 0.30000001192092896,
+      "AfterCenteringSeconds": 0.0833333358168602,
+      "BeforeAdditionalHeadingDegrees": -8.701934814453125,
+      "AfterAdditionalHeadingDegrees": -4.625579833984375,
+      "BeforeYawRateAt500MillisecondsDegreesPerSecond": -0.05045536160469055,
+      "AfterYawRateAt500MillisecondsDegreesPerSecond": -0.25316473841667175
+    },
+    {
+      "Name": "Touring 225 / Moderate speed right steering release",
+      "BeforeCenteringSeconds": 0.30000001192092896,
+      "AfterCenteringSeconds": 0.0833333358168602,
+      "BeforeAdditionalHeadingDegrees": 8.783077239990234,
+      "AfterAdditionalHeadingDegrees": 4.623575210571289,
+      "BeforeYawRateAt500MillisecondsDegreesPerSecond": 0.05046018585562706,
+      "AfterYawRateAt500MillisecondsDegreesPerSecond": 0.25317320227622986
+    },
+    {
+      "Name": "Touring 225 / Faster speed left steering release",
+      "BeforeCenteringSeconds": 0.30000001192092896,
+      "AfterCenteringSeconds": 0.0833333358168602,
+      "BeforeAdditionalHeadingDegrees": -17.6556396484375,
+      "AfterAdditionalHeadingDegrees": -7.22998046875,
+      "BeforeYawRateAt500MillisecondsDegreesPerSecond": -6.537079334259033,
+      "AfterYawRateAt500MillisecondsDegreesPerSecond": 0.1061980351805687
+    },
+    {
+      "Name": "Touring 225 / Faster speed right steering release",
+      "BeforeCenteringSeconds": 0.30000001192092896,
+      "AfterCenteringSeconds": 0.0833333358168602,
+      "BeforeAdditionalHeadingDegrees": 17.654556274414062,
+      "AfterAdditionalHeadingDegrees": 7.22939395904541,
+      "BeforeYawRateAt500MillisecondsDegreesPerSecond": 6.536526203155518,
+      "AfterYawRateAt500MillisecondsDegreesPerSecond": -0.10611321777105331
+    }
+  ]
+}

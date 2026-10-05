@@ -4,7 +4,7 @@ MotorBound Online's design targets a persistent automotive world built around me
 
 This repository currently contains milestone **0.2: a local garage → test drive → return-and-save loop** for one rear-wheel-drive Kiyora Aven. The garage's installed assembly determines vehicle mass, supported wheel visuals, tire parameters, and the operating envelope. Stock and touring wheel packages connect the assembly manifest, dependency planner, fitment checks, driving controller, and versioned local save.
 
-The driving prototype uses a 360 Hz critical-vehicle step, tire-width contact sampling, water/roughness surface state, and custom tire forces without Unity `WheelCollider`. Multiplayer, the economy, property ownership, and production vehicle inventory remain future work. See [the garage milestone guide](docs/prototypes/GARAGE_TEST_LOOP.md) for the acceptance loop, evidence, and limitations.
+The driving prototype uses a 360 Hz critical-vehicle step, tire-width contact sampling, water/roughness surface state, and custom tire forces without Unity `WheelCollider`. Version 0.2.1 makes released keyboard steering return to center more promptly, while retaining the existing gradual response when a steering key is pressed. Multiplayer, the economy, property ownership, and production vehicle inventory remain future work. See [the garage milestone guide](docs/prototypes/GARAGE_TEST_LOOP.md) for the acceptance loop, evidence, and limitations.
 
 ## Open the prototype
 
@@ -44,11 +44,13 @@ Save files use `Application.persistentDataPath/garage-v1.json`. A successful rep
 
 ## Verification
 
-On October 1, 2026, **73 native Unity EditMode tests passed**, including 12 product integration tests. The actual Unity driving validation passed **8 maneuvers and 211 assertions** across stock/touring dry acceleration and braking, wet driving, steering, and rough road. The generated report is `artifacts/driving-validation.json`.
+On October 5, 2026, **80 native Unity EditMode tests passed**, including steering release in both directions at 30, 60, and 144 Hz input updates. The actual Unity driving validation passed **16 maneuvers and 267 assertions**, including the eight original handling maneuvers plus eight keyboard steering-release scenarios. The generated report is `artifacts/driving-validation.json`, with before/after release measurements in `artifacts/steering-release-comparison.json`.
 
-The **Windows development player built successfully** as version `0.2.0` at `Builds/Windows/MotorBoundVehiclePrototype.exe` (final build summary: 91,778,643 bytes). Keep its adjacent data files when running or copying the player. Live player checks confirmed workshop startup, missing-hardware rejection, touring installation, incompatible-package rejection, the driving transition, and recovery. Visual inspection led to visible wheel openings and two-sided workshop signage.
+At 60 Hz input updates, the full steering command centered in **83 ms**, compared with **300 ms** before the change. For the faster dry-road release cases (approximately 51–53 km/h), continued heading change over two seconds fell from about **18° to 7–8°**, and turning rate fell below **0.3°/s** by 500 ms without braking. These measurements cover both stock and touring configurations; subjective feel remains part of the player playtest.
 
-Measured mean controller-plus-`Physics.Simulate` step time was approximately **78–91 µs** in that run at 360 Hz. This excludes rendering and UI and is not a rendered frame-rate or hardware performance guarantee.
+The **Windows player version 0.2.1 built successfully** at `Builds/Windows/MotorBoundVehiclePrototype.exe` (build summary: 91,779,237 bytes). Keep its adjacent data files when running or copying the player. The 0.2.0 live player checks confirmed workshop startup, missing-hardware rejection, touring installation, incompatible-package rejection, the driving transition, and recovery. Visual inspection led to visible wheel openings and two-sided workshop signage.
+
+Measured mean controller-plus-`Physics.Simulate` step time was approximately **69–79 µs** in the October 5 run at 360 Hz. This excludes rendering and UI and is not a rendered frame-rate or hardware performance guarantee.
 
 From Unity, run **Window > General > Test Runner > EditMode**, then **MotorBound > Validate Driving Physics** outside Play Mode with modified scenes saved. To produce a Windows development player, run this from the repository root (adjust the Editor executable for your installation):
 

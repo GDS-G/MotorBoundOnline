@@ -41,6 +41,50 @@ namespace MotorBound.Product.Tests
             }
         }
 
+        [TestCase(-1f, 30)]
+        [TestCase(1f, 30)]
+        [TestCase(-1f, 60)]
+        [TestCase(1f, 60)]
+        [TestCase(-1f, 144)]
+        [TestCase(1f, 144)]
+        public void KeyboardSteering_ReleaseCentersWithinOneTenthSecond(float direction, int inputFrequency)
+        {
+            var vehicle = CreateVehicle();
+            var controller = vehicle.GetComponent<RaycastVehicleController>();
+            controller.Configure(PrototypeGarageCatalog.Compile(PrototypeGarageCatalog.CreateNewState()).Vehicle);
+            var driver = vehicle.GetComponent<PrototypeInputDriver>();
+            var step = 1f / inputFrequency;
+            for (var frame = 0; frame < inputFrequency; frame++)
+                driver.ApplyInput(new VehicleInputState(0f, 0f, direction, 0f), step);
+            Assert.That(driver.SteeringInput, Is.EqualTo(direction));
+
+            var elapsed = 0f;
+            while (driver.SteeringInput != 0f && elapsed < 1f)
+            {
+                driver.ApplyInput(default(VehicleInputState), step);
+                elapsed += step;
+                Assert.That(driver.SteeringInput * direction, Is.InRange(0f, 1f), "Centering must never countersteer.");
+            }
+            Assert.That(elapsed, Is.LessThanOrEqualTo(0.10001f));
+        }
+
+        [Test]
+        public void KeyboardSteering_PressRemainsProgressiveAndGarageClearsSteering()
+        {
+            var vehicle = CreateVehicle();
+            var controller = vehicle.GetComponent<RaycastVehicleController>();
+            controller.Configure(PrototypeGarageCatalog.Compile(PrototypeGarageCatalog.CreateNewState()).Vehicle);
+            var driver = vehicle.GetComponent<PrototypeInputDriver>();
+            driver.ApplyInput(new VehicleInputState(0f, 0f, 1f, 0f), 0.1f);
+            Assert.That(driver.SteeringInput, Is.EqualTo(0.35f).Within(0.00001f));
+            driver.DrivingEnabled = false;
+            driver.ApplyInput(new VehicleInputState(1f, 0f, 1f, 0f), 0.1f);
+            Assert.That(driver.SteeringInput, Is.Zero);
+            driver.DrivingEnabled = true;
+            driver.ApplyInput(default(VehicleInputState), 0.1f);
+            Assert.That(driver.SteeringInput, Is.Zero);
+        }
+
         [Test]
         public void SaveLoad_RetainsAssemblyIdentityRevisionAndCompiledConfiguration()
         {

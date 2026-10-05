@@ -75,6 +75,11 @@ namespace MotorBound.Editor
                     RunManeuver(configuration, "Rough road", false, true, false, report);
                     Check(wet.MinimumObservedGrip < dry.MinimumObservedGrip, configuration.WheelPackageName + ": wet contact must report less grip than dry contact.", report);
                     Check(wet.MaximumObservedWaterFilmMillimeters >= 2.49f, configuration.WheelPackageName + ": wet contact must sample the configured 2.5 mm water film.", report);
+                    foreach (var accelerationSeconds in new[] { 2f, 4f })
+                    {
+                        RunSteeringRelease(configuration, accelerationSeconds, -1f, report);
+                        RunSteeringRelease(configuration, accelerationSeconds, 1f, report);
+                    }
                 }
             }
             catch (Exception exception)
@@ -195,51 +200,163 @@ namespace MotorBound.Editor
             return result;
         }
 
+        private static void RunSteeringRelease(PrototypeGarageConfiguration configuration, float accelerationSeconds, float direction, DrivingReport report)
+        {
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            var ground = new GameObject("Steering release validation road", typeof(BoxCollider), typeof(SurfaceGrip));
+            ground.transform.position = new Vector3(0f, -0.12f, 40f);
+            ground.GetComponent<BoxCollider>().size = new Vector3(180f, 0.24f, 480f);
+            ground.GetComponent<SurfaceGrip>().Configure(1f, "Dry asphalt", 0f, 0f);
+            var car = new GameObject("Steering release Kiyora Aven", typeof(Rigidbody));
+            car.transform.position = new Vector3(0f, 0.92f, -8f);
+            PrototypeBootstrap.AddReferenceBody(car);
+            var controller = car.AddComponent<RaycastVehicleController>();
+            controller.Configure(configuration.Vehicle);
+            var driver = car.AddComponent<PrototypeInputDriver>();
+            driver.Configure(controller);
+            var body = car.GetComponent<Rigidbody>();
+            UnityEngine.Physics.SyncTransforms();
+            var result = new ManeuverResult
+            {
+                Name = configuration.WheelPackageName + " / " + (accelerationSeconds < 3f ? "Moderate" : "Faster")
+                       + " speed " + (direction < 0f ? "left" : "right") + " steering release",
+                IsSteeringReleaseScenario = true,
+                WheelPackageKey = configuration.WheelPackageKey,
+                MassKilograms = body.mass,
+                TireRadiusMeters = (float)configuration.Vehicle.Tire.UnloadedRadiusMeters,
+                TireSectionWidthMeters = (float)configuration.Vehicle.Tire.SectionWidthMeters,
+                NominalCenterOfMassHeightMeters = (float)configuration.Vehicle.CenterOfMassHeightMeters,
+                MinimumObservedGrip = float.MaxValue,
+                InputCenteringSeconds = -1f
+            };
+            report.Maneuvers.Add(result);
+            Advance(controller, body, 2f, new VehicleInputState(0f, 0f, 0f, 0f), null);
+            var startPosition = body.position;
+            AdvanceKeyboard(driver, controller, body, accelerationSeconds, new VehicleInputState(0.8f, 0f, 0f, 0f), result);
+            result.SpeedAfterAccelerationMetersPerSecond = body.velocity.magnitude;
+            result.ForwardDistanceMeters = body.position.z - startPosition.z;
+            AdvanceKeyboard(driver, controller, body, 0.35f, new VehicleInputState(0.2f, 0f, direction, 0f), result);
+            result.PeakSteeringInput = Mathf.Abs(controller.Telemetry.Input.Steering);
+            result.SpeedAtSteeringReleaseMetersPerSecond = body.velocity.magnitude;
+            result.YawRateAtSteeringReleaseDegreesPerSecond = YawRateDegreesPerSecond(body);
+            Check(result.PeakSteeringInput >= 0.99f, result.Name + ": holding a steering key must reach full steering before release.", report);
+
+            const float renderStepSeconds = 1f / 60f;
+            var physicsStepsPerFrame = Mathf.RoundToInt(renderStepSeconds / StepSeconds);
+            var previousYaw = body.rotation.eulerAngles.y;
+            for (var frame = 0; frame < 120; frame++)
+            {
+                driver.ApplyInput(new VehicleInputState(0.2f, 0f, 0f, 0f), renderStepSeconds);
+                for (var step = 0; step < physicsStepsPerFrame; step++)
+                {
+                    AdvancePhysicsStep(controller, body, result);
+                    var currentYaw = body.rotation.eulerAngles.y;
+                    result.AdditionalHeadingAfterSteeringReleaseDegrees += Mathf.DeltaAngle(previousYaw, currentYaw);
+                    previousYaw = currentYaw;
+                }
+
+                var elapsedSeconds = (frame + 1) * renderStepSeconds;
+                var actualSteering = controller.Telemetry.Input.Steering;
+                if (result.InputCenteringSeconds < 0f && Mathf.Abs(actualSteering) <= 0.0001f)
+                {
+                    result.InputCenteringSeconds = elapsedSeconds;
+                }
+
+                if (actualSteering * direction < -0.0001f)
+                {
+                    result.SteeringReversalSamples++;
+                }
+
+                if (frame == 8) result.YawRateAfterRelease150MillisecondsDegreesPerSecond = YawRateDegreesPerSecond(body);
+                if (frame == 29) result.YawRateAfterRelease500MillisecondsDegreesPerSecond = YawRateDegreesPerSecond(body);
+                if (frame == 59) result.YawRateAfterRelease1SecondDegreesPerSecond = YawRateDegreesPerSecond(body);
+            }
+
+            result.YawRateAfterRelease2SecondsDegreesPerSecond = YawRateDegreesPerSecond(body);
+            Check(result.InputCenteringSeconds >= 0f && result.InputCenteringSeconds <= 0.10001f,
+                result.Name + ": released steering must center within 100 ms at 60 Hz input sampling.", report);
+            Check(result.SteeringReversalSamples == 0, result.Name + ": release must never command an opposite steering direction.", report);
+            Check(Mathf.Abs(result.YawRateAfterRelease500MillisecondsDegreesPerSecond) < 1f,
+                result.Name + ": continued turning must settle below 1 degree per second within 500 ms without braking.", report);
+            Check(Mathf.Abs(result.YawRateAfterRelease1SecondDegreesPerSecond) < 1f,
+                result.Name + ": heading must remain settled one second after steering release.", report);
+            Check(result.GroundedSamples > 0 && result.UnknownSurfaceContactSamples == 0,
+                result.Name + ": release maneuver must maintain valid road contact.", report);
+            Check(result.MinimumUprightDot > 0.15f && result.MaximumHeightMeters < 4f && result.MinimumHeightMeters > -0.5f,
+                result.Name + ": release maneuver must remain upright and within bounded height.", report);
+        }
+
+        private static float YawRateDegreesPerSecond(Rigidbody body)
+        {
+            return Vector3.Dot(body.angularVelocity, Vector3.up) * Mathf.Rad2Deg;
+        }
+
+        private static void AdvanceKeyboard(PrototypeInputDriver driver, RaycastVehicleController controller, Rigidbody body,
+            float seconds, VehicleInputState requestedInput, ManeuverResult result)
+        {
+            const float renderStepSeconds = 1f / 60f;
+            var physicsStepsPerFrame = Mathf.RoundToInt(renderStepSeconds / StepSeconds);
+            var frames = Mathf.RoundToInt(seconds / renderStepSeconds);
+            for (var frame = 0; frame < frames; frame++)
+            {
+                driver.ApplyInput(requestedInput, renderStepSeconds);
+                for (var step = 0; step < physicsStepsPerFrame; step++)
+                {
+                    AdvancePhysicsStep(controller, body, result);
+                }
+            }
+        }
+
         private static void Advance(RaycastVehicleController controller, Rigidbody body, float seconds, VehicleInputState input, ManeuverResult result)
         {
             controller.SetInput(input);
             var steps = Mathf.RoundToInt(seconds / StepSeconds);
             for (var step = 0; step < steps; step++)
             {
-                var startTicks = Stopwatch.GetTimestamp();
-                controller.SimulateStep(StepSeconds);
-                UnityEngine.Physics.Simulate(StepSeconds);
-                var elapsedTicks = Stopwatch.GetTimestamp() - startTicks;
-                var speed = body.velocity.magnitude;
-                if (float.IsNaN(speed) || float.IsInfinity(speed) || speed > 120f || body.angularVelocity.magnitude > 30f
-                    || !IsFinite(body.position) || !IsFinite(body.angularVelocity))
-                {
-                    throw new InvalidOperationException("Physics produced nonfinite or unbounded motion.");
-                }
+                AdvancePhysicsStep(controller, body, result);
+            }
+        }
 
-                if (result == null)
+        private static void AdvancePhysicsStep(RaycastVehicleController controller, Rigidbody body, ManeuverResult result)
+        {
+            var startTicks = Stopwatch.GetTimestamp();
+            controller.SimulateStep(StepSeconds);
+            UnityEngine.Physics.Simulate(StepSeconds);
+            var elapsedTicks = Stopwatch.GetTimestamp() - startTicks;
+            var speed = body.velocity.magnitude;
+            if (float.IsNaN(speed) || float.IsInfinity(speed) || speed > 120f || body.angularVelocity.magnitude > 30f
+                || !IsFinite(body.position) || !IsFinite(body.angularVelocity))
+            {
+                throw new InvalidOperationException("Physics produced nonfinite or unbounded motion.");
+            }
+
+            if (result == null)
+            {
+                return;
+            }
+
+            result.PhysicsSteps++;
+            result.TotalSimulationTicks += elapsedTicks;
+            result.MeanControllerAndPhysicsStepMicroseconds = result.TotalSimulationTicks * 1000000d / Stopwatch.Frequency / result.PhysicsSteps;
+            result.MaximumSpeedMetersPerSecond = Mathf.Max(result.MaximumSpeedMetersPerSecond, speed);
+            result.MaximumHeightMeters = Mathf.Max(result.MaximumHeightMeters, body.position.y);
+            result.MinimumHeightMeters = Mathf.Min(result.MinimumHeightMeters, body.position.y);
+            result.MinimumUprightDot = Mathf.Min(result.MinimumUprightDot, Vector3.Dot(body.rotation * Vector3.up, Vector3.up));
+            foreach (var wheel in controller.Telemetry.Wheels)
+            {
+                if (!wheel.Grounded)
                 {
                     continue;
                 }
 
-                result.PhysicsSteps++;
-                result.TotalSimulationTicks += elapsedTicks;
-                result.MeanControllerAndPhysicsStepMicroseconds = result.TotalSimulationTicks * 1000000d / Stopwatch.Frequency / result.PhysicsSteps;
-                result.MaximumSpeedMetersPerSecond = Mathf.Max(result.MaximumSpeedMetersPerSecond, speed);
-                result.MaximumHeightMeters = Mathf.Max(result.MaximumHeightMeters, body.position.y);
-                result.MinimumHeightMeters = Mathf.Min(result.MinimumHeightMeters, body.position.y);
-                result.MinimumUprightDot = Mathf.Min(result.MinimumUprightDot, Vector3.Dot(body.rotation * Vector3.up, Vector3.up));
-                foreach (var wheel in controller.Telemetry.Wheels)
-                {
-                    if (!wheel.Grounded)
-                    {
-                        continue;
-                    }
-
-                    result.GroundedSamples++;
-                    result.RoughContactSamples += wheel.SurfaceName == "Rough asphalt" ? 1 : 0;
-                    result.UnknownSurfaceContactSamples += wheel.SurfaceName != "Dry asphalt" && wheel.SurfaceName != "Wet asphalt"
-                                                           && wheel.SurfaceName != "Rough asphalt" ? 1 : 0;
-                    result.MinimumObservedGrip = Mathf.Min(result.MinimumObservedGrip, wheel.SurfaceGripMultiplier);
-                    result.MaximumObservedWaterFilmMillimeters = Mathf.Max(result.MaximumObservedWaterFilmMillimeters, wheel.WaterFilmDepthMillimeters);
-                    result.MinimumSuspensionCompressionMeters = Mathf.Min(result.MinimumSuspensionCompressionMeters, wheel.SuspensionCompressionMeters);
-                    result.MaximumSuspensionCompressionMeters = Mathf.Max(result.MaximumSuspensionCompressionMeters, wheel.SuspensionCompressionMeters);
-                }
+                result.GroundedSamples++;
+                result.RoughContactSamples += wheel.SurfaceName == "Rough asphalt" ? 1 : 0;
+                result.UnknownSurfaceContactSamples += wheel.SurfaceName != "Dry asphalt" && wheel.SurfaceName != "Wet asphalt"
+                                                       && wheel.SurfaceName != "Rough asphalt" ? 1 : 0;
+                result.MinimumObservedGrip = Mathf.Min(result.MinimumObservedGrip, wheel.SurfaceGripMultiplier);
+                result.MaximumObservedWaterFilmMillimeters = Mathf.Max(result.MaximumObservedWaterFilmMillimeters, wheel.WaterFilmDepthMillimeters);
+                result.MinimumSuspensionCompressionMeters = Mathf.Min(result.MinimumSuspensionCompressionMeters, wheel.SuspensionCompressionMeters);
+                result.MaximumSuspensionCompressionMeters = Mathf.Max(result.MaximumSuspensionCompressionMeters, wheel.SuspensionCompressionMeters);
             }
         }
 
@@ -371,6 +488,17 @@ namespace MotorBound.Editor
             public float MaximumSpeedMetersPerSecond;
             public float SteeringYawChangeDegrees;
             public float SteeringLateralDisplacementMeters;
+            public bool IsSteeringReleaseScenario;
+            public float PeakSteeringInput;
+            public float SpeedAtSteeringReleaseMetersPerSecond;
+            public float InputCenteringSeconds;
+            public int SteeringReversalSamples;
+            public float YawRateAtSteeringReleaseDegreesPerSecond;
+            public float YawRateAfterRelease150MillisecondsDegreesPerSecond;
+            public float YawRateAfterRelease500MillisecondsDegreesPerSecond;
+            public float YawRateAfterRelease1SecondDegreesPerSecond;
+            public float YawRateAfterRelease2SecondsDegreesPerSecond;
+            public float AdditionalHeadingAfterSteeringReleaseDegrees;
             public float MinimumObservedGrip;
             public float MaximumObservedWaterFilmMillimeters;
             public float MinimumSuspensionCompressionMeters = float.MaxValue;
