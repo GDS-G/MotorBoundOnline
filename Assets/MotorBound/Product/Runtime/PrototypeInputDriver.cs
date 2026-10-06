@@ -47,7 +47,7 @@ namespace MotorBound.Product
             var throttle = Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow) ? 1f : 0f;
             var brake = Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow) ? 1f : 0f;
             var handbrake = Input.GetKey(KeyCode.Space) ? 1f : 0f;
-            if (DrivingEnabled && Input.GetKeyDown(KeyCode.F2)) ToggleRoadTractionControl();
+            if (DrivingEnabled && Input.GetKeyDown(KeyCode.F2)) CycleDriverAssistMode();
             ApplyInput(new VehicleInputState(throttle, brake, steeringTarget, handbrake), Time.deltaTime);
 
             if (DrivingEnabled && Input.GetKeyDown(KeyCode.Backspace))
@@ -60,6 +60,13 @@ namespace MotorBound.Product
         {
             if (controller != null && DrivingEnabled)
                 controller.RoadTractionControlEnabled = !controller.RoadTractionControlEnabled;
+        }
+
+        public void CycleDriverAssistMode()
+        {
+            if (controller == null || !DrivingEnabled) return;
+            controller.AssistMode = controller.AssistMode == DriverAssistMode.Road ? DriverAssistMode.Sport
+                : controller.AssistMode == DriverAssistMode.Sport ? DriverAssistMode.Off : DriverAssistMode.Road;
         }
 
         // The live keyboard path and native driving checks share the same response.

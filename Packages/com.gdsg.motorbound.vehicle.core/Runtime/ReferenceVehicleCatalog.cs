@@ -68,6 +68,17 @@ namespace MotorBound.Vehicle.Core
                     UpshiftSpeedRpm = 7100d,
                     DownshiftSpeedRpm = 2800d
                 },
+                // Provisional club axle hardware, not a claim about production-car factory equipment.
+                // AWD currently uses equal center torque split and independent front/rear axle definitions.
+                FrontDifferential = new DifferentialDefinition { Type = DifferentialType.Open },
+                RearDifferential = new DifferentialDefinition
+                {
+                    Type = DifferentialType.ClutchLimitedSlip,
+                    PreloadTorqueNewtonMeters = 25d,
+                    PowerLockFraction = 0.12d,
+                    CoastLockFraction = 0.03d,
+                    SlipSpeedGainNewtonMeterSecondsPerRadian = 4d
+                },
                 Tire = new TireDefinition
                 {
                     UnloadedRadiusMeters = 0.305d,

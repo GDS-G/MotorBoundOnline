@@ -66,5 +66,51 @@ namespace MotorBound.Vehicle.Core.Tests
 
             Assert.That(definition.Validate(), Is.Empty);
         }
+
+        [Test]
+        public void ReferenceClubAxle_HasExplicitPassiveLimitedSlipHardware()
+        {
+            var definition = ReferenceVehicleCatalog.CreateKiyoraAvenClubPrototype();
+            Assert.That(definition.FrontDifferential.Type, Is.EqualTo(DifferentialType.Open));
+            Assert.That(definition.RearDifferential.Type, Is.EqualTo(DifferentialType.ClutchLimitedSlip));
+            Assert.That(definition.RearDifferential.PreloadTorqueNewtonMeters, Is.GreaterThan(0d));
+            Assert.That(definition.RearDifferential.CoastLockFraction, Is.LessThan(definition.RearDifferential.PowerLockFraction));
+        }
+
+        [TestCase(-1d)]
+        [TestCase(double.NaN)]
+        [TestCase(double.PositiveInfinity)]
+        public void Validation_RejectsInvalidDifferentialResistance(double value)
+        {
+            var definition = ReferenceVehicleCatalog.CreateKiyoraAvenClubPrototype();
+            definition.RearDifferential.PreloadTorqueNewtonMeters = value;
+            definition.FrontDifferential.SlipSpeedGainNewtonMeterSecondsPerRadian = value;
+            var issues = definition.Validate();
+            Assert.That(issues.Any(issue => issue.Path == "rearDifferential.preloadTorqueNewtonMeters"), Is.True);
+            Assert.That(issues.Any(issue => issue.Path == "frontDifferential.slipSpeedGainNewtonMeterSecondsPerRadian"), Is.True);
+        }
+
+        [TestCase(-0.1d)]
+        [TestCase(1.01d)]
+        [TestCase(double.NaN)]
+        [TestCase(double.PositiveInfinity)]
+        public void Validation_RejectsInvalidDifferentialLockFraction(double value)
+        {
+            var definition = ReferenceVehicleCatalog.CreateKiyoraAvenClubPrototype();
+            definition.RearDifferential.PowerLockFraction = value;
+            definition.RearDifferential.CoastLockFraction = value;
+            Assert.That(definition.Validate().Count(issue => issue.Path.Contains("LockFraction")), Is.EqualTo(2));
+        }
+
+        [Test]
+        public void Validation_RejectsMissingOrUnknownAxleDifferential()
+        {
+            var definition = ReferenceVehicleCatalog.CreateKiyoraAvenClubPrototype();
+            definition.FrontDifferential = null;
+            definition.RearDifferential.Type = (DifferentialType)99;
+            var issues = definition.Validate();
+            Assert.That(issues.Any(issue => issue.Path == "frontDifferential"), Is.True);
+            Assert.That(issues.Any(issue => issue.Path == "rearDifferential.type"), Is.True);
+        }
     }
 }

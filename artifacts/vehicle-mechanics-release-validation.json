@@ -1,0 +1,71 @@
+{
+  "Date": "2026-10-06",
+  "PlayerVersion": "0.2.5",
+  "UnityVersion": "2022.3.62f2",
+  "NativeEditModeTests": { "Total": 226, "Passed": 226, "Failed": 0, "Skipped": 0 },
+  "DomainVerificationChecks": { "Total": 15, "Passed": 15 },
+  "NativeCornering": {
+    "Scenarios": 70,
+    "Assertions": 501,
+    "Passed": true,
+    "UnassistedHistoricalScenarios": 22,
+    "RoadAssistedRoutineScenarios": 48,
+    "Report": "artifacts/cornering-validation.json"
+  },
+  "NativeDriving": {
+    "Scenarios": 16,
+    "Assertions": 267,
+    "Passed": true,
+    "MeanControllerAndPhysicsStepMicrosecondsRange": [81.2361747243427, 102.1663003663],
+    "Report": "artifacts/driving-validation.json"
+  },
+  "NativeSlideMechanics": {
+    "Scenarios": 44,
+    "Assertions": 256,
+    "Passed": true,
+    "RequiredPhysicalSlideCases": 28,
+    "RequiredPhysicalSlideCasesPassed": 28,
+    "MinimumRequiredContinuousSlideSecondsObserved": 3.000000238418579,
+    "RequiredVirtualDriverHandbrakeCases": 16,
+    "RequiredOffPowerOnlyCases": 8,
+    "RequiredDigitalKeyboardCases": 4,
+    "CompletedPhysicalSlideOutcomes": 36,
+    "DiagnosticIdenticalOpenLoopCasesWithoutFullPhysicalSlideOutcome": 8,
+    "Report": "artifacts/slide-validation.json",
+    "RawTrace": "artifacts/slide-validation-traces.json",
+    "RawTraceIgnoredByGit": true,
+    "Scope": "Dry-road native Rigidbody/tire/drivetrain simulation; actual production input response at 60 Hz and physics at 360 Hz. Entry speed targets are not maintained slide speeds. Virtual driver feedback is test-only, not automatic player steering. Strict cases require physical entry, continuous controlled sliding, powered rear slip, actual countersteering and recovery without reset. All strict cases observed a three-second hold; acceptance threshold is one second. Wet drift and human driving feel remain unverified."
+  },
+  "WindowsBuild": {
+    "Succeeded": true,
+    "SummaryBytes": 91816217,
+    "Executable": "Builds/Windows/0.2.5/MotorBoundVehiclePrototype.exe",
+    "OldRootFolderBuildNotOverwritten": true,
+    "VehiclePhysicsAssemblySha256": "37F2CD677AE5535CE0F7D2059FFCD028D0F5C97A19444F33AAE4B72F1477BB38"
+  },
+  "HeadlessPlayerCheck": {
+    "Attempted": true,
+    "DurationSeconds": 12,
+    "LoadedAssembliesAndScene": true,
+    "ManagedExceptionsObserved": false,
+    "GraphicsDevice": "Null",
+    "ShaderSupportDiagnosticsObserved": true,
+    "Log": "Builds/Windows/0.2.5/startup-smoke.log",
+    "TestProcessId": 376756,
+    "StoppedOnlyIsolatedTestProcess": true,
+    "ExistingUserPlayerProcessId": 60068,
+    "ExistingUserPlayerLeftRunning": true,
+    "SaveExistedBefore": false,
+    "SaveExistedAfter": false,
+    "Limitation": "Null-device shader support diagnostics are expected in a no-graphics run. This does not verify rendering, startup visuals, F2 key interaction or subjective human driving feel."
+  },
+  "RenderedPlayerCheck": { "Attempted": false, "Verified": false },
+  "ArchitectureLimitations": [
+    "Engine RPM/launch remain algebraic; engine inertia and engine/transmission clutch dynamics are not integrated.",
+    "No physically simulated clutch-kick, stall, shift duration or shaft compliance.",
+    "AWD has equal center torque distribution, not a center differential model.",
+    "Tire relaxation, temperature, wear, pressure and measured-data calibration remain deferred.",
+    "Rolling-resistance/contact-reaction energy balance needs separate calibration.",
+    "No added yaw, automatic steering, grip override, brake-to-drift or maintained-speed drift force."
+  ]
+}

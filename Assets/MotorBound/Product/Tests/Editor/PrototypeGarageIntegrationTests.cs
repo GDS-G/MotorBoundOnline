@@ -139,6 +139,58 @@ namespace MotorBound.Product.Tests
         }
 
         [Test]
+        public void DriverAssistModes_DefaultSportCycleExplicitlyAndSurviveGarageReconfiguration()
+        {
+            var vehicle = CreateVehicle();
+            var controller = vehicle.GetComponent<RaycastVehicleController>();
+            var configuration = PrototypeGarageCatalog.Compile(PrototypeGarageCatalog.CreateNewState());
+            controller.Configure(configuration.Vehicle);
+            var driver = vehicle.GetComponent<PrototypeInputDriver>();
+            Assert.That(controller.AssistMode, Is.EqualTo(DriverAssistMode.Sport));
+            driver.DrivingEnabled = false;
+            driver.CycleDriverAssistMode();
+            Assert.That(controller.AssistMode, Is.EqualTo(DriverAssistMode.Sport));
+            driver.DrivingEnabled = true;
+            driver.CycleDriverAssistMode();
+            Assert.That(controller.AssistMode, Is.EqualTo(DriverAssistMode.Off));
+            controller.Configure(configuration.Vehicle);
+            Assert.That(controller.AssistMode, Is.EqualTo(DriverAssistMode.Off));
+            driver.CycleDriverAssistMode();
+            Assert.That(controller.AssistMode, Is.EqualTo(DriverAssistMode.Road));
+            driver.CycleDriverAssistMode();
+            Assert.That(controller.AssistMode, Is.EqualTo(DriverAssistMode.Sport));
+        }
+
+        [TestCase(DriveLayout.FrontWheelDrive)]
+        [TestCase(DriveLayout.RearWheelDrive)]
+        [TestCase(DriveLayout.AllWheelDrive)]
+        public void CoupledAxles_DeliverPropulsionOnlyToTheDeclaredDrivenWheels(DriveLayout layout)
+        {
+            var vehicle = CreateVehicle();
+            var controller = vehicle.GetComponent<RaycastVehicleController>();
+            var definition = ReferenceVehicleCatalog.CreateKiyoraAvenClubPrototype();
+            definition.DriveLayout = layout;
+            controller.Configure(definition);
+            controller.AssistMode = DriverAssistMode.Off;
+            controller.SetInput(new VehicleInputState(1f, 0f, 0f, 0f));
+            controller.SimulateStep(1f / RaycastVehicleController.CriticalVehicleSimulationFrequencyHertz);
+            var actual = controller.Telemetry;
+            var engineTorque = definition.Engine.EvaluateFullLoadTorqueNewtonMeters(actual.EngineSpeedRpm);
+            var requestedTotal = engineTorque * definition.Transmission.ForwardGearRatios[actual.ForwardGear - 1]
+                * definition.Transmission.FinalDriveRatio * definition.Transmission.Efficiency;
+            Assert.That(actual.Wheels.Sum(wheel => wheel.DriveTorqueNewtonMeters),
+                Is.EqualTo(requestedTotal).Within(0.001d), "Internal differential transfer cannot create axle torque.");
+            for (var index = 0; index < actual.Wheels.Length; index++)
+            {
+                var driven = layout == DriveLayout.AllWheelDrive
+                    || (layout == DriveLayout.FrontWheelDrive && index < 2)
+                    || (layout == DriveLayout.RearWheelDrive && index >= 2);
+                Assert.That(actual.Wheels[index].DriveTorqueNewtonMeters > 0f, Is.EqualTo(driven));
+                Assert.That(actual.Wheels[index].AngularSpeedRadiansPerSecond > 0f, Is.EqualTo(driven));
+            }
+        }
+
+        [Test]
         public void SaveLoad_RetainsAssemblyIdentityRevisionAndCompiledConfiguration()
         {
             var state = CreateTouringState();

@@ -69,9 +69,11 @@ namespace MotorBound.Product
                     telemetry.LocalAccelerationMetersPerSecondSquared.x,
                     telemetry.LocalAccelerationMetersPerSecondSquared.z),
                 bodyStyle);
-            GUILayout.Label("Traction control: " + (controller.RoadTractionControlEnabled
-                ? "ROAD ON" + (telemetry.TractionControlActive ? " / limiting wheelspin" : "")
-                : "OFF / unassisted") + "  |  F2 toggle", bodyStyle);
+            GUILayout.Label("Assist: " + controller.AssistMode.ToString().ToUpperInvariant()
+                + " / " + AssistPhaseLabel(telemetry.AssistPhase)
+                + (telemetry.TractionControlActive ? " / torque limiting" : "") + "  |  F2 cycle", bodyStyle);
+            GUILayout.Label(string.Format("Body slide {0:+0.0;-0.0;0.0} deg  |  Delivered drive {1:0}%",
+                telemetry.BodySideslipDegrees, telemetry.DeliveredDriveTorqueScale * 100f), bodyStyle);
             GUILayout.Space(8f);
             var frontSliding = false;
             var rearSliding = false;
@@ -109,8 +111,21 @@ namespace MotorBound.Product
 
             GUILayout.Space(10f);
             GUILayout.Label("W throttle  |  S brake  |  A/D steer  |  Space handbrake", bodyStyle);
-            GUILayout.Label("Backspace recover  |  F1 telemetry  |  F2 traction control", bodyStyle);
+            GUILayout.Label("Backspace recover  |  F1 telemetry  |  F2 Road / Sport / Off", bodyStyle);
+            GUILayout.Label("Sport: Space in a turn initiates; release, feather W, countersteer.", bodyStyle);
             GUILayout.EndArea();
+        }
+
+        private static string AssistPhaseLabel(DriverAssistPhase phase)
+        {
+            switch (phase)
+            {
+                case DriverAssistPhase.SlideInitiation: return "slide entry";
+                case DriverAssistPhase.Sliding: return "physical slide / limiter bypass";
+                case DriverAssistPhase.Recovery: return "catching slide / limiter bypass";
+                case DriverAssistPhase.Unassisted: return "unassisted";
+                default: return "road grip";
+            }
         }
 
         private void EnsureStyles()

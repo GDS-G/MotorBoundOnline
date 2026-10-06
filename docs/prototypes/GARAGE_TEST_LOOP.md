@@ -2,7 +2,7 @@
 
 The milestone connects one Kiyora Aven's installed assembly to a playable local workshop, test drive, and explicit save/reload loop. It uses the existing vehicle-core foundations to make a supported part change observable in the same vehicle that is driven and saved.
 
-The current checkout is `C:\Users\Michael\OneDrive\Documents\ASR_MotorBound Online\MotorBoundOnline`. Instructions and commands use the repository root, so another checkout can be used without editing source paths. The prototype Editor baseline remains Unity `2022.3.62f2`; the current product version is `0.2.4`.
+The current checkout is `C:\Users\Michael\OneDrive\Documents\ASR_MotorBound Online\MotorBoundOnline`. Instructions and commands use the repository root, so another checkout can be used without editing source paths. The prototype Editor baseline remains Unity `2022.3.62f2`; the current product version is `0.2.5`.
 
 ## Play the acceptance loop
 
@@ -31,7 +31,7 @@ The workshop is centered at world `(0, 0, -121)`. Entry checks position, height,
 | `F6` | Recover to the workshop, retaining the installed configuration |
 | Backspace | Upright and lift the car at its current driving location |
 | `F1` | Toggle driving telemetry/help |
-| `F2` | Toggle road traction control while driving (starts ON; OFF allows unassisted power slides) |
+| `F2` | Cycle Road / Sport / Off while driving (starts in Sport) |
 
 ## What the installed assembly changes
 
@@ -62,7 +62,9 @@ Version 0.2.2 replaces independent longitudinal/lateral saturation with one dire
 
 Version 0.2.4 independently softens the stock sliding tail to 0.90 while preserving the existing peak location, dry friction, stiffness, and shared-force direction. Grounded wheel rotation uses adaptive substeps with averaged transmitted forces, preventing low-speed wheel-slip integration chatter. The contact/chassis simulation remains 360 Hz; this is not a new chassis stabilization force.
 
-The road prototype starts with visible traction control ON because W is an on/off throttle. The HUD labels its status and intervention; F2 disables it. It reduces positive engine torque to limit power-induced wheelspin while reserving cornering grip; it does not auto-steer, add yaw forces, change the tire friction limit, or provide ABS. Handbrake initiation remains available. OFF is the unassisted mode for power-slide comparisons. This setting is a prototype driving preference, not factory/installed-part data or a saved assembly change. See [the researched handling choices](VEHICLE_DYNAMICS_RESEARCH_BRIEF.md#handling-references-reviewed--october-6-2026) for the distinction between other games' documented choices and MotorBound's implementation.
+Version 0.2.5 starts in visible SPORT assistance. Ordinary driving uses the established ROAD torque limiter. A moving handbrake turn opens a slide-initiation window; a confirmed body/driven-tire slide then bypasses the limiter through sustain and recovery rather than being canceled immediately on Space release. The driver still supplies all steering, throttle and braking. Unconfirmed initiation expires after 0.85 seconds of handbrake release; confirmed sliding has no arbitrary timer. Continuous recovery below 2 degrees body sideslip and 5 degrees/second yaw for 0.35 seconds restores the road policy. Stop, loss of driven contacts, mode change, pause and motion reset clear the intent latch. ROAD retains strict grip-first behavior; OFF permits unassisted power-oversteer initiation. F2 cycles these modes, and the HUD shows mode, phase, sideslip and delivered torque. No mode adds yaw, maintained-speed force, automatic steering, extra tire grip or ABS. These are session preferences, not installed factory ECU parts or assembly-save fields.
+
+The physical axle mechanism is separate: open and clutch-limited-slip definitions feed shared wheel/tire microsteps. The provisional Club rear LSD uses 25 Nm preload, 0.12 power / 0.03 coast lock fractions of total axle torque, and 4 Nm s/rad slip-speed gain. Equal-and-opposite internal impulses are capacity- and equalization-bounded; coupling conserves angular momentum and dissipates wheel-speed-difference energy. It neither welds wheel speeds nor invents tire forces. This is authored within the existing reference running gear, not a new garage part. FWD/RWD driven-axle routing and independent AWD axle coupling are supported; AWD center distribution remains an equal split. Tire curve, dry friction, suspension, CG, chassis angular drag and keyboard response are unchanged from 0.2.4. Engine/transmission clutch dynamics and integrated engine inertia remain deferred. See [the source-grounded architecture audit](VEHICLE_DYNAMICS_RESEARCH_BRIEF.md#vehicle-architecture-audit---october-6-2026).
 
 Skid marks use grounded, loaded, post-peak contacts and actual tire width, with a fixed 2,048-segment pool. Contact loss, pause, recovery, and large jumps break trails. They do not appear merely because a steering key is held. The F1 HUD reports front, rear, or both-axle sliding. Gentle steering should remain composed; test hard steering around 50–70 km/h, then compare a brief handbrake input followed by release and countersteering. Holding the handbrake through the entire turn can spin the car.
 
@@ -88,6 +90,19 @@ The save store:
 If recovery is needed, close the prototype, preserve copies of both the active file and any backup, and inspect the reported problem. An independently verified valid backup can be copied into the active location after the original is retained elsewhere. Do not edit arbitrary part values to bypass validation. A future schema needs an explicit migration; none is implemented here.
 
 ## Verification
+
+Vehicle-mechanics update (version 0.2.5) on October 6, 2026:
+
+- Reviewed Criterion's developer presentation, Kylotonn's vehicle-dynamics interview and MCO's producer explanation for actual component architecture, separately from player tuning controls. The research brief records source claims, our interpretations and missing mechanics; exact proprietary models are not available here.
+- **226/226 native EditMode tests passed**, including passive differential momentum/energy bounds, power/coast and reverse behavior, paired wheel/contact torque accounting, brake locking, zero-grip contacts, assist intent/lifecycle and FWD/RWD/AWD routing. **15 engine-independent checks passed**.
+- Retained cornering passed **70 scenarios / 501 assertions** and dry/wet/rough driving passed **16 / 267**. All six mild full-throttle 30/50/70 km/h bends left no marks. At 70 km/h, stock/touring peak sideslip was **1.23° / 1.25°**, final yaw **0.19°/s / 0.20°/s**, and sustained near-straight settlement began **0.52 / 0.60 seconds** after release. Full-lock keyboard release remains **83 ms**; yaw at 500 ms remained below **0.30°/s** in driving release cases.
+- The new dry-road slide suite passed **44 scenarios / 256 assertions**. All **28 required slide cases** initiated through physical tire/drivetrain behavior, held controlled sliding for three seconds with the handbrake released, applied countersteering and recovered without a reset. Coverage includes stock/touring, left/right, 50/70 km/h entry targets, Sport/Off handbrake entry, eight Off power-only cases and four stock 50 km/h digital-only keyboard cases. Actual powered rear slip continued for at least 1.95 seconds inside each strict hold; force-envelope and stability bounds passed.
+- The automated driver acts only through production inputs, not by adding forces or setting moving-car velocity/yaw. It is test code, not automatic player steering. Entry targets are not fixed drift speeds. There are **36 completed physical-slide outcomes**; eight identical-input Road/Sport open-loop comparisons explicitly fail the full-slide outcome and remain diagnostic. Wet drift acceptance, analog controls and subjective human feel remain unverified.
+- **Windows development player 0.2.5 built successfully** at `Builds/Windows/0.2.5/MotorBoundVehiclePrototype.exe`, reporting **91,816,217 bytes**. An isolated twelve-second headless player loaded its assemblies/scene without managed exceptions. Null-graphics shader-support diagnostics are expected for that headless device and do not verify rendering. Only that smoke-test process was stopped; the user's existing root-folder player was left running. No player save existed before or after the check.
+- Mean controller-plus-`Physics.Simulate` time was **81–102 µs/step** at 360 Hz on this machine, excluding rendering/UI/networking. Rendered startup/F2 interaction and driving feel still need playtesting. Current evidence is in `artifacts/vehicle-mechanics-release-validation.json` and the compact `artifacts/slide-validation.json`; generated 20 Hz dense traces are ignored by Git.
+- Engine/transmission clutch, dynamically integrated engine inertia, shift duration, transient tires and calibrated suspension geometry remain missing. The axle clutch does not provide clutch-kicks or stalling; AWD center distribution is still equal-split. No new automatic yaw, grip or maintained-speed force was added, and tire/steering/suspension parameters are unchanged from 0.2.4.
+
+The following sections preserve historical release measurements. Shared driving/cornering report paths now contain the latest 0.2.5 run; older contents remain in Git history (0.2.4 commit `4381b58`) and dedicated comparison artifacts.
 
 Road-handling update (version 0.2.4) on October 6, 2026:
 
@@ -165,6 +180,12 @@ New-Item -ItemType Directory -Path (Join-Path $motorBoundProject 'artifacts') -F
   -executeMethod MotorBound.Editor.PrototypeCorneringValidation.Run `
   -logFile (Join-Path $motorBoundProject 'artifacts/cornering-validation.log')
 
+# Physical slide initiation, holding and recovery.
+& $unityEditor -batchmode -nographics -quit `
+  -projectPath $motorBoundProject `
+  -executeMethod MotorBound.Editor.PrototypeSlideValidation.Run `
+  -logFile (Join-Path $motorBoundProject 'artifacts/slide-validation.log')
+
 # Engine-independent checks complement native Unity tests.
 dotnet run --project tools/MotorBound.DomainVerification/MotorBound.DomainVerification.csproj
 
@@ -175,7 +196,7 @@ dotnet run --project tools/MotorBound.DomainVerification/MotorBound.DomainVerifi
   -logFile (Join-Path $motorBoundProject 'artifacts/windows-build.log')
 ```
 
-Inspect each run's result before proceeding; a successful compilation is not a successful test or player build. A successful versioned Windows build produces `Builds/Windows/0.2.4/MotorBoundVehiclePrototype.exe` and adjacent required data files. The Editor equivalents are **Window > General > Test Runner > EditMode**, **MotorBound > Validate Driving Physics**, **MotorBound > Validate Cornering Physics**, and **MotorBound > Build Versioned Windows Prototype**. The original **Build Windows Prototype** targets `Builds/Windows` directly and must not overwrite a running player's files. Save modified scenes before driving validation.
+Inspect each run's result before proceeding; a successful compilation is not a successful test or player build. A successful versioned Windows build produces `Builds/Windows/0.2.5/MotorBoundVehiclePrototype.exe` and adjacent required data files. The Editor equivalents are **Window > General > Test Runner > EditMode**, **MotorBound > Validate Driving Physics**, **MotorBound > Validate Cornering Physics**, **MotorBound > Validate Slide Mechanics**, and **MotorBound > Build Versioned Windows Prototype**. The original **Build Windows Prototype** targets `Builds/Windows` directly and must not overwrite a running player's files. Save modified scenes before driving validation.
 
 ## Boundaries and next work
 

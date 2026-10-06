@@ -36,6 +36,9 @@ test-results/
 /TestResults*.xml
 /Unity*.log
 
+# Dense generated wheel/force traces; the compact acceptance summary is tracked.
+/artifacts/slide-validation-traces.json
+
 # OS files
 .DS_Store
 Thumbs.db

@@ -37,6 +37,31 @@ namespace MotorBound.Vehicle.Physics
 
         public static WheelContactResult Solve(WheelContactInput input)
         {
+            ValidateInput(input);
+            var substeps = CalculateSubstepCount(input);
+            var stepSeconds = input.DeltaTimeSeconds / substeps;
+            var angularSpeed = input.AngularSpeedRadiansPerSecond;
+            var longitudinalSum = 0d;
+            var lateralSum = 0d;
+            var brakeImpulse = 0d;
+            var limitImpulse = 0d;
+
+            for (var step = 0; step < substeps; step++)
+            {
+                var force = EvaluateDeliveredForce(input, angularSpeed);
+                var withoutBrake = angularSpeed
+                    + (input.DriveTorqueNewtonMeters - force.LongitudinalForceNewtons * input.RadiusMeters)
+                    * stepSeconds / input.RotationalInertiaKilogramMetersSquared;
+                angularSpeed = ApplyBrakeAndLimit(input, withoutBrake, stepSeconds, ref brakeImpulse, ref limitImpulse);
+                longitudinalSum += force.LongitudinalForceNewtons;
+                lateralSum += force.LateralForceNewtons;
+            }
+
+            return BuildResult(input, angularSpeed, longitudinalSum, lateralSum, substeps, brakeImpulse, limitImpulse);
+        }
+
+        internal static void ValidateInput(WheelContactInput input)
+        {
             RequirePositiveFinite(input.DeltaTimeSeconds, nameof(input.DeltaTimeSeconds));
             RequirePositiveFinite(input.RadiusMeters, nameof(input.RadiusMeters));
             RequirePositiveFinite(input.RotationalInertiaKilogramMetersSquared, nameof(input.RotationalInertiaKilogramMetersSquared));
@@ -46,7 +71,10 @@ namespace MotorBound.Vehicle.Physics
             RequireFinite(input.BrakeTorqueNewtonMeters, nameof(input.BrakeTorqueNewtonMeters));
             RequireFinite(input.RollingResistanceCoefficient, nameof(input.RollingResistanceCoefficient));
             RequireFinite(input.Tire.LongitudinalSlipStiffnessNewtonPerRatio, nameof(input.Tire.LongitudinalSlipStiffnessNewtonPerRatio));
+        }
 
+        internal static int CalculateSubstepCount(WheelContactInput input)
+        {
             var referenceSpeed = Math.Max(Math.Abs(input.LongitudinalSpeedMetersPerSecond), MinimumSlipReferenceSpeedMetersPerSecond);
             // Linearization of r*Fx(omega) gives Ck*r^2/(I*Vref). A single explicit
             // 360 Hz step has gain about 12 at low speed for the reference wheels.
@@ -58,51 +86,52 @@ namespace MotorBound.Vehicle.Physics
                 : 0d;
             // The authored stock/touring wheels need at most 24 substeps at 360 Hz.
             // Bound work for unsupported extreme inputs; this is not an arbitrary-dt solver.
-            var substeps = (int)Math.Max(1d, Math.Min(MaximumSubsteps, Math.Ceiling(feedbackGain / MaximumLinearFeedbackGain)));
-            var stepSeconds = input.DeltaTimeSeconds / substeps;
-            var angularSpeed = input.AngularSpeedRadiansPerSecond;
-            var longitudinalSum = 0d;
-            var lateralSum = 0d;
-            var brakeImpulse = 0d;
-            var limitImpulse = 0d;
+            return (int)Math.Max(1d, Math.Min(MaximumSubsteps, Math.Ceiling(feedbackGain / MaximumLinearFeedbackGain)));
+        }
+
+        internal static TireForceResult EvaluateDeliveredForce(WheelContactInput input, double angularSpeed)
+        {
+            var referenceSpeed = Math.Max(Math.Abs(input.LongitudinalSpeedMetersPerSecond), MinimumSlipReferenceSpeedMetersPerSecond);
             var tireInput = input.Tire;
-
-            for (var step = 0; step < substeps; step++)
+            tireInput.SlipRatio = (angularSpeed * input.RadiusMeters - input.LongitudinalSpeedMetersPerSecond) / referenceSpeed;
+            var force = TireForceModel.Evaluate(tireInput);
+            var longitudinal = force.LongitudinalForceNewtons;
+            if (Math.Abs(input.LongitudinalSpeedMetersPerSecond) > 0.25d)
+                longitudinal -= Math.Sign(input.LongitudinalSpeedMetersPerSecond)
+                                * Math.Max(0d, input.RollingResistanceCoefficient) * Math.Max(0d, tireInput.NormalLoadNewtons);
+            var lateral = force.LateralForceNewtons;
+            var magnitude = Math.Sqrt(longitudinal * longitudinal + lateral * lateral);
+            if (magnitude > force.MaximumCombinedForceNewtons && magnitude > 0d)
             {
-                tireInput.SlipRatio = (angularSpeed * input.RadiusMeters - input.LongitudinalSpeedMetersPerSecond) / referenceSpeed;
-                var force = TireForceModel.Evaluate(tireInput);
-                var longitudinal = force.LongitudinalForceNewtons;
-                if (Math.Abs(input.LongitudinalSpeedMetersPerSecond) > 0.25d)
-                    longitudinal -= Math.Sign(input.LongitudinalSpeedMetersPerSecond)
-                                    * Math.Max(0d, input.RollingResistanceCoefficient) * Math.Max(0d, tireInput.NormalLoadNewtons);
-                var lateral = force.LateralForceNewtons;
-                var magnitude = Math.Sqrt(longitudinal * longitudinal + lateral * lateral);
-                if (magnitude > force.MaximumCombinedForceNewtons && magnitude > 0d)
-                {
-                    var scale = force.MaximumCombinedForceNewtons / magnitude;
-                    longitudinal *= scale;
-                    lateral *= scale;
-                }
-
-                // The same delivered contact force advances wheel reaction torque and
-                // contributes to the force average subsequently applied to the chassis.
-                var withoutBrake = angularSpeed
-                    + (input.DriveTorqueNewtonMeters - longitudinal * input.RadiusMeters)
-                    * stepSeconds / input.RotationalInertiaKilogramMetersSquared;
-                var brakeSpeedChange = Math.Max(0d, input.BrakeTorqueNewtonMeters)
-                    * stepSeconds / input.RotationalInertiaKilogramMetersSquared;
-                var afterBrake = Math.Sign(withoutBrake) * Math.Max(0d, Math.Abs(withoutBrake) - brakeSpeedChange);
-                // A static brake may hold omega at zero, but it cannot rotate the
-                // wheel backwards. This also avoids sign chatter during handbrake lock.
-                brakeImpulse += (withoutBrake - afterBrake) * input.RotationalInertiaKilogramMetersSquared;
-                var limitedSpeed = Math.Max(-MaximumAngularSpeedRadiansPerSecond,
-                    Math.Min(MaximumAngularSpeedRadiansPerSecond, afterBrake));
-                limitImpulse += (limitedSpeed - afterBrake) * input.RotationalInertiaKilogramMetersSquared;
-                angularSpeed = limitedSpeed;
-                longitudinalSum += longitudinal;
-                lateralSum += lateral;
+                var scale = force.MaximumCombinedForceNewtons / magnitude;
+                longitudinal *= scale;
+                lateral *= scale;
             }
 
+            return new TireForceResult(longitudinal, lateral, force.MaximumCombinedForceNewtons,
+                force.EffectiveFrictionCoefficient, force.SlipDemandRatio, force.IsSliding);
+        }
+
+        internal static double ApplyBrakeAndLimit(WheelContactInput input, double withoutBrake, double stepSeconds,
+            ref double brakeImpulse, ref double limitImpulse)
+        {
+            var brakeSpeedChange = Math.Max(0d, input.BrakeTorqueNewtonMeters)
+                * stepSeconds / input.RotationalInertiaKilogramMetersSquared;
+            var afterBrake = Math.Sign(withoutBrake) * Math.Max(0d, Math.Abs(withoutBrake) - brakeSpeedChange);
+            // A static brake may hold omega at zero, but it cannot rotate the
+            // wheel backwards. This also avoids sign chatter during handbrake lock.
+            brakeImpulse += (withoutBrake - afterBrake) * input.RotationalInertiaKilogramMetersSquared;
+            var limitedSpeed = Math.Max(-MaximumAngularSpeedRadiansPerSecond,
+                Math.Min(MaximumAngularSpeedRadiansPerSecond, afterBrake));
+            limitImpulse += (limitedSpeed - afterBrake) * input.RotationalInertiaKilogramMetersSquared;
+            return limitedSpeed;
+        }
+
+        internal static WheelContactResult BuildResult(WheelContactInput input, double angularSpeed,
+            double longitudinalSum, double lateralSum, int substeps, double brakeImpulse, double limitImpulse)
+        {
+            var referenceSpeed = Math.Max(Math.Abs(input.LongitudinalSpeedMetersPerSecond), MinimumSlipReferenceSpeedMetersPerSecond);
+            var tireInput = input.Tire;
             tireInput.SlipRatio = (angularSpeed * input.RadiusMeters - input.LongitudinalSpeedMetersPerSecond) / referenceSpeed;
             return new WheelContactResult
             {

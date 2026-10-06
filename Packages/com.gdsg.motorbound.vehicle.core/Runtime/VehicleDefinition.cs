@@ -11,6 +11,23 @@ namespace MotorBound.Vehicle.Core
         AllWheelDrive
     }
 
+    public enum DifferentialType
+    {
+        Open,
+        ClutchLimitedSlip
+    }
+
+    /// <summary>Passive axle coupling. Fractions multiply total axle torque, not individual wheel torque.</summary>
+    [Serializable]
+    public sealed class DifferentialDefinition
+    {
+        public DifferentialType Type = DifferentialType.Open;
+        public double PreloadTorqueNewtonMeters;
+        public double PowerLockFraction;
+        public double CoastLockFraction;
+        public double SlipSpeedGainNewtonMeterSecondsPerRadian;
+    }
+
     [Serializable]
     public struct TorqueSample
     {
@@ -144,6 +161,8 @@ namespace MotorBound.Vehicle.Core
         public double MaximumSteeringAngleDegrees = 32d;
         public EngineDefinition Engine = new EngineDefinition();
         public TransmissionDefinition Transmission = new TransmissionDefinition();
+        public DifferentialDefinition FrontDifferential = new DifferentialDefinition();
+        public DifferentialDefinition RearDifferential = new DifferentialDefinition();
         public TireDefinition Tire = new TireDefinition();
         public SuspensionDefinition Suspension = new SuspensionDefinition();
         public BrakeDefinition Brakes = new BrakeDefinition();
@@ -167,6 +186,8 @@ namespace MotorBound.Vehicle.Core
             Require(Tire != null, "tire", "Tire definition is required.", issues);
             Require(Suspension != null, "suspension", "Suspension definition is required.", issues);
             Require(Brakes != null, "brakes", "Brake definition is required.", issues);
+            ValidateDifferential(FrontDifferential, "frontDifferential", issues);
+            ValidateDifferential(RearDifferential, "rearDifferential", issues);
 
             if (Architecture != null)
             {
@@ -228,6 +249,22 @@ namespace MotorBound.Vehicle.Core
             }
 
             return issues;
+        }
+
+        private static void ValidateDifferential(DifferentialDefinition differential, string path, ICollection<ValidationIssue> issues)
+        {
+            Require(differential != null, path, "An axle differential definition is required.", issues);
+            if (differential == null) return;
+            Require(Enum.IsDefined(typeof(DifferentialType), differential.Type), path + ".type", "Unknown differential type.", issues);
+            Require(IsFiniteNonnegative(differential.PreloadTorqueNewtonMeters), path + ".preloadTorqueNewtonMeters", "Preload torque must be finite and nonnegative.", issues);
+            Require(IsFiniteNonnegative(differential.SlipSpeedGainNewtonMeterSecondsPerRadian), path + ".slipSpeedGainNewtonMeterSecondsPerRadian", "Slip-speed gain must be finite and nonnegative.", issues);
+            Require(IsFiniteNonnegative(differential.PowerLockFraction) && differential.PowerLockFraction <= 1d, path + ".powerLockFraction", "Power lock fraction must be in [0, 1].", issues);
+            Require(IsFiniteNonnegative(differential.CoastLockFraction) && differential.CoastLockFraction <= 1d, path + ".coastLockFraction", "Coast lock fraction must be in [0, 1].", issues);
+        }
+
+        private static bool IsFiniteNonnegative(double value)
+        {
+            return !double.IsNaN(value) && !double.IsInfinity(value) && value >= 0d;
         }
 
         private static void Require(bool condition, string path, string message, ICollection<ValidationIssue> issues)

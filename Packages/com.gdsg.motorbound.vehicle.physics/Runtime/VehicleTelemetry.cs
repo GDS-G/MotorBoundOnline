@@ -13,6 +13,8 @@ namespace MotorBound.Vehicle.Physics
         public float SlipAngleDegrees;
         public float LongitudinalForceNewtons;
         public float LateralForceNewtons;
+        public float AngularSpeedRadiansPerSecond;
+        public float DriveTorqueNewtonMeters;
         public float SurfaceGripMultiplier;
         public int ContactSampleCount;
         public float WaterFilmDepthMillimeters;
@@ -36,6 +38,13 @@ namespace MotorBound.Vehicle.Physics
         public bool RoadTractionControlEnabled;
         public bool TractionControlActive;
         public float DeliveredDriveTorqueScale;
+        public DriverAssistMode AssistMode;
+        public DriverAssistPhase AssistPhase;
+        public float BodySideslipDegrees;
+        public float FrontDifferentialTransferTorqueNewtonMeters;
+        public float RearDifferentialTransferTorqueNewtonMeters;
+        // Largest absolute axle transfer, useful as a layout-independent HUD summary.
+        public float DifferentialTransferTorqueNewtonMeters;
         public WheelTelemetry[] Wheels;
 
         public int GroundedWheelCount
