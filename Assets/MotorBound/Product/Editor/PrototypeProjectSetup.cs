@@ -11,6 +11,7 @@ namespace MotorBound.Editor
     {
         private const string SceneDirectory = "Assets/MotorBound/Product/Scenes";
         private const string ScenePath = SceneDirectory + "/VehicleDynamicsPrototype.unity";
+        private const string PrototypeVersion = "0.2.4";
 
         [MenuItem("MotorBound/Configure Prototype Project")]
         public static void ConfigurePrototypeProject()
@@ -24,7 +25,7 @@ namespace MotorBound.Editor
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
             PlayerSettings.companyName = "GDS-G";
             PlayerSettings.productName = "MotorBound Online - Vehicle Dynamics Prototype";
-            PlayerSettings.bundleVersion = "0.2.3";
+            PlayerSettings.bundleVersion = PrototypeVersion;
             PlayerSettings.defaultScreenWidth = 1600;
             PlayerSettings.defaultScreenHeight = 900;
             PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
@@ -39,8 +40,22 @@ namespace MotorBound.Editor
         [MenuItem("MotorBound/Build Windows Prototype")]
         public static void BuildWindowsPrototype()
         {
-            ConfigurePrototypeProject();
             var outputDirectory = Path.GetFullPath(Path.Combine(Application.dataPath, "../Builds/Windows"));
+            BuildWindowsPrototypeAt(outputDirectory);
+        }
+
+        // Keep a player's running build untouched while delivering the next playtest.
+        [MenuItem("MotorBound/Build Versioned Windows Prototype")]
+        public static void BuildVersionedWindowsPrototype()
+        {
+            var outputDirectory = Path.GetFullPath(Path.Combine(Application.dataPath,
+                "../Builds/Windows", PrototypeVersion));
+            BuildWindowsPrototypeAt(outputDirectory);
+        }
+
+        private static void BuildWindowsPrototypeAt(string outputDirectory)
+        {
+            ConfigurePrototypeProject();
             Directory.CreateDirectory(outputDirectory);
             var options = new BuildPlayerOptions
             {

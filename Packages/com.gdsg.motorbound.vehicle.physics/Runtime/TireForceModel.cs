@@ -47,6 +47,12 @@ namespace MotorBound.Vehicle.Physics
     /// </summary>
     public static class TireForceModel
     {
+        // Keep the established peak location independent of authored sliding grip.
+        // An omitted input retains the original curve; vehicle definitions choose their own tail.
+        private const double ReferenceSlidingGripRatio = 0.78d;
+        private static readonly double ShapeFactor = 2d - 2d * Math.Asin(ReferenceSlidingGripRatio) / Math.PI;
+        private static readonly double PeakSlipDemandRatio = ShapeFactor * Math.Tan(Math.PI / (2d * ShapeFactor));
+
         public static TireForceResult Evaluate(TireForceInput input)
         {
             if (!IsFinite(input.NormalLoadNewtons) || input.NormalLoadNewtons <= 0d)
@@ -80,17 +86,23 @@ namespace MotorBound.Vehicle.Physics
             }
 
             var slidingRatio = IsFinite(input.SlidingGripRatio) && input.SlidingGripRatio > 0d
-                ? Math.Min(input.SlidingGripRatio, 1d) : 0.78d;
-            // Compact sine/atan curve: unit slope at zero demand, a smooth finite
-            // peak, then a continuous decline toward the authored sliding fraction.
-            var shape = 2d - 2d * Math.Asin(slidingRatio) / Math.PI;
+                ? Math.Min(input.SlidingGripRatio, 1d) : ReferenceSlidingGripRatio;
+            // The reference curve retains unit slope at zero demand and the same finite
+            // peak for every tire. Change only the post-peak decline so a more forgiving
+            // sliding tail cannot also move the breakaway point or alter ordinary grip.
             var normalizedDemand = demandMagnitude / maximumForce;
-            var forceMagnitude = maximumForce * Math.Sin(shape * Math.Atan(normalizedDemand / shape));
+            var normalizedForce = Math.Sin(ShapeFactor * Math.Atan(normalizedDemand / ShapeFactor));
+            var isSliding = normalizedDemand > PeakSlipDemandRatio;
+            if (isSliding && slidingRatio != ReferenceSlidingGripRatio)
+            {
+                var remainingGrip = Clamp((normalizedForce - ReferenceSlidingGripRatio)
+                                          / (1d - ReferenceSlidingGripRatio), 0d, 1d);
+                normalizedForce = slidingRatio + (1d - slidingRatio) * remainingGrip;
+            }
+            var forceMagnitude = maximumForce * normalizedForce;
             var scale = forceMagnitude / demandMagnitude;
-            var peakDemand = shape < 1.000001d ? double.PositiveInfinity
-                : shape * Math.Tan(Math.PI / (2d * shape));
             return new TireForceResult(requestedLongitudinal * scale, requestedLateral * scale,
-                maximumForce, effectiveMu, normalizedDemand, normalizedDemand > peakDemand);
+                maximumForce, effectiveMu, normalizedDemand, isSliding);
         }
 
         private static bool IsFinite(double value)

@@ -15,6 +15,7 @@ namespace MotorBound.Vehicle.Physics
         private const float MinimumSlipReferenceSpeedMetersPerSecond = 1.5f;
 
         private readonly WheelState[] wheels = new WheelState[WheelCount];
+        private readonly TireForceInput[] tractionContacts = new TireForceInput[WheelCount];
         private RaycastHit[] contactHits = new RaycastHit[8];
         private Rigidbody body;
         private VehicleDefinition definition;
@@ -29,6 +30,7 @@ namespace MotorBound.Vehicle.Physics
         public VehicleTelemetry Telemetry { get; private set; }
         public VehicleDefinition Definition => definition;
         public bool SimulationPaused { get; set; }
+        public bool RoadTractionControlEnabled { get; set; } = true;
 
         private void Awake()
         {
@@ -105,6 +107,8 @@ namespace MotorBound.Vehicle.Physics
                 ForwardGear = forwardGear,
                 EngineSpeedRpm = engineSpeedRpm,
                 SimulationFrequencyHertz = CriticalVehicleSimulationFrequencyHertz,
+                RoadTractionControlEnabled = RoadTractionControlEnabled,
+                DeliveredDriveTorqueScale = 1f,
                 Wheels = new WheelTelemetry[WheelCount]
             };
         }
@@ -147,6 +151,8 @@ namespace MotorBound.Vehicle.Physics
                 ? (1f - input.Throttle) * (float)definition.Engine.EngineBrakingTorqueNewtonMeters
                 : 0f;
             var driveTorquePerWheel = ((engineTorque - engineBraking) * gearRatio * (float)definition.Transmission.FinalDriveRatio * (float)definition.Transmission.Efficiency) / drivenWheelCount;
+            var tractionControl = EvaluateRoadTractionControl(driveTorquePerWheel);
+            driveTorquePerWheel = (float)tractionControl.DriveTorquePerWheelNewtonMeters;
 
             var telemetryWheels = Telemetry.Wheels ?? new WheelTelemetry[WheelCount];
             for (var index = 0; index < wheels.Length; index++)
@@ -168,8 +174,49 @@ namespace MotorBound.Vehicle.Physics
                 SimulationFrequencyHertz = Mathf.RoundToInt(1f / Mathf.Max(fixedDeltaTime, 0.0001f)),
                 LocalAccelerationMetersPerSecondSquared = transform.InverseTransformDirection(accelerationWorld),
                 Input = input,
+                RoadTractionControlEnabled = RoadTractionControlEnabled,
+                TractionControlActive = tractionControl.Active,
+                DeliveredDriveTorqueScale = (float)tractionControl.DeliveredDriveTorqueScale,
                 Wheels = telemetryWheels
             };
+        }
+
+        private RoadTractionControlResult EvaluateRoadTractionControl(float requestedWheelTorque)
+        {
+            var contactCount = 0;
+            var previousContacts = Telemetry.Wheels;
+            if (previousContacts != null)
+            {
+                var tire = definition.Tire;
+                for (var index = 0; index < wheels.Length && index < previousContacts.Length; index++)
+                {
+                    var previous = previousContacts[index];
+                    if (!wheels[index].Driven || !previous.Grounded || previous.NormalLoadNewtons <= 20f) continue;
+                    tractionContacts[contactCount++] = new TireForceInput
+                    {
+                        NormalLoadNewtons = previous.NormalLoadNewtons,
+                        SlipRatio = previous.SlipRatio,
+                        SlipAngleRadians = previous.SlipAngleDegrees * Mathf.Deg2Rad,
+                        SurfaceGripMultiplier = previous.SurfaceGripMultiplier,
+                        PeakDryFrictionCoefficient = tire.PeakDryFrictionCoefficient,
+                        SlidingGripRatio = tire.SlidingGripRatio,
+                        LongitudinalSlipStiffnessNewtonPerRatio = tire.LongitudinalSlipStiffnessNewtonPerRatio,
+                        CorneringStiffnessNewtonPerRadian = tire.CorneringStiffnessNewtonPerRadian,
+                        ReferenceLoadNewtons = tire.ReferenceLoadNewtons,
+                        LoadSensitivityExponent = tire.LoadSensitivityExponent
+                    };
+                }
+            }
+
+            return RoadTractionControl.Evaluate(new RoadTractionControlInput
+            {
+                Enabled = RoadTractionControlEnabled,
+                RequestedDriveTorquePerWheelNewtonMeters = requestedWheelTorque,
+                HandbrakeInput = input.Handbrake,
+                TireRadiusMeters = definition.Tire.UnloadedRadiusMeters,
+                LoadedDrivenContacts = tractionContacts,
+                ContactCount = contactCount
+            });
         }
 
         private WheelTelemetry SimulateWheel(WheelState wheel, float driveTorqueNewtonMeters, float deltaTimeSeconds)
@@ -209,9 +256,6 @@ namespace MotorBound.Vehicle.Physics
             var wheelRight = Vector3.Cross(contact.Normal, wheelForward).normalized;
             var longitudinalSpeed = Vector3.Dot(pointVelocity, wheelForward);
             var lateralSpeed = Vector3.Dot(pointVelocity, wheelRight);
-            var wheelSurfaceSpeed = wheel.AngularSpeedRadiansPerSecond * radius;
-            var slipReferenceSpeed = Mathf.Max(Mathf.Abs(longitudinalSpeed), MinimumSlipReferenceSpeedMetersPerSecond);
-            var slipRatio = (wheelSurfaceSpeed - longitudinalSpeed) / slipReferenceSpeed;
             var slipAngle = Mathf.Atan2(lateralSpeed, Mathf.Max(Mathf.Abs(longitudinalSpeed), MinimumSlipReferenceSpeedMetersPerSecond));
             var surface = contact.Collider.GetComponentInParent<SurfaceGrip>();
             var surfaceState = surface != null
@@ -225,35 +269,37 @@ namespace MotorBound.Vehicle.Physics
             var surfaceMultiplier = (float)surfaceState.EffectiveGripMultiplier;
             var surfaceName = surface != null ? surface.SurfaceName : contact.Collider.name;
 
-            var forceResult = TireForceModel.Evaluate(new TireForceInput
+            var serviceBias = wheel.Front
+                ? (float)definition.Brakes.FrontBias * 0.5f
+                : (1f - (float)definition.Brakes.FrontBias) * 0.5f;
+            var serviceBrakeTorque = input.Brake * (float)definition.Brakes.MaximumServiceBrakeTorqueNewtonMeters * serviceBias;
+            var handbrakeTorque = wheel.Front ? 0f : input.Handbrake * (float)definition.Brakes.MaximumHandbrakeTorqueNewtonMeters * 0.5f;
+            var contactStep = WheelContactSolver.Solve(new WheelContactInput
             {
-                NormalLoadNewtons = normalLoad,
-                SlipRatio = slipRatio,
-                SlipAngleRadians = slipAngle,
-                PeakDryFrictionCoefficient = tire.PeakDryFrictionCoefficient,
-                SlidingGripRatio = tire.SlidingGripRatio,
-                SurfaceGripMultiplier = surfaceMultiplier,
-                LongitudinalSlipStiffnessNewtonPerRatio = tire.LongitudinalSlipStiffnessNewtonPerRatio,
-                CorneringStiffnessNewtonPerRadian = tire.CorneringStiffnessNewtonPerRadian,
-                ReferenceLoadNewtons = tire.ReferenceLoadNewtons,
-                LoadSensitivityExponent = tire.LoadSensitivityExponent
+                AngularSpeedRadiansPerSecond = wheel.AngularSpeedRadiansPerSecond,
+                LongitudinalSpeedMetersPerSecond = longitudinalSpeed,
+                RadiusMeters = radius,
+                RotationalInertiaKilogramMetersSquared = tire.RotationalInertiaKilogramMetersSquared,
+                DriveTorqueNewtonMeters = driveTorqueNewtonMeters,
+                BrakeTorqueNewtonMeters = serviceBrakeTorque + handbrakeTorque,
+                RollingResistanceCoefficient = tire.RollingResistanceCoefficient,
+                DeltaTimeSeconds = deltaTimeSeconds,
+                Tire = new TireForceInput
+                {
+                    NormalLoadNewtons = normalLoad,
+                    SlipAngleRadians = slipAngle,
+                    PeakDryFrictionCoefficient = tire.PeakDryFrictionCoefficient,
+                    SlidingGripRatio = tire.SlidingGripRatio,
+                    SurfaceGripMultiplier = surfaceMultiplier,
+                    LongitudinalSlipStiffnessNewtonPerRatio = tire.LongitudinalSlipStiffnessNewtonPerRatio,
+                    CorneringStiffnessNewtonPerRadian = tire.CorneringStiffnessNewtonPerRadian,
+                    ReferenceLoadNewtons = tire.ReferenceLoadNewtons,
+                    LoadSensitivityExponent = tire.LoadSensitivityExponent
+                }
             });
-
-            var longitudinalForce = (float)forceResult.LongitudinalForceNewtons;
-            if (Mathf.Abs(longitudinalSpeed) > 0.25f)
-            {
-                longitudinalForce -= Mathf.Sign(longitudinalSpeed) * (float)(tire.RollingResistanceCoefficient * normalLoad);
-            }
-
-            var lateralForce = (float)forceResult.LateralForceNewtons;
-            var deliveredForceMagnitude = Mathf.Sqrt((longitudinalForce * longitudinalForce) + (lateralForce * lateralForce));
-            var maximumCombinedForce = (float)forceResult.MaximumCombinedForceNewtons;
-            if (deliveredForceMagnitude > maximumCombinedForce && deliveredForceMagnitude > 0f)
-            {
-                var gripScale = maximumCombinedForce / deliveredForceMagnitude;
-                longitudinalForce *= gripScale;
-                lateralForce *= gripScale;
-            }
+            wheel.AngularSpeedRadiansPerSecond = (float)contactStep.AngularSpeedRadiansPerSecond;
+            var longitudinalForce = (float)contactStep.MeanLongitudinalForceNewtons;
+            var lateralForce = (float)contactStep.MeanLateralForceNewtons;
 
             body.AddForceAtPosition(
                 (contact.Normal * normalLoad)
@@ -262,19 +308,6 @@ namespace MotorBound.Vehicle.Physics
                 contact.Point,
                 ForceMode.Force);
 
-            var serviceBias = wheel.Front
-                ? (float)definition.Brakes.FrontBias * 0.5f
-                : (1f - (float)definition.Brakes.FrontBias) * 0.5f;
-            var serviceBrakeTorque = input.Brake * (float)definition.Brakes.MaximumServiceBrakeTorqueNewtonMeters * serviceBias;
-            var handbrakeTorque = wheel.Front ? 0f : input.Handbrake * (float)definition.Brakes.MaximumHandbrakeTorqueNewtonMeters * 0.5f;
-            IntegrateWheelAngularSpeed(
-                wheel,
-                driveTorqueNewtonMeters,
-                longitudinalForce * radius,
-                serviceBrakeTorque + handbrakeTorque,
-                longitudinalSpeed,
-                deltaTimeSeconds);
-
             UpdateWheelVisual(wheel, steeringDegrees, suspensionLength, deltaTimeSeconds);
             return new WheelTelemetry
             {
@@ -282,7 +315,7 @@ namespace MotorBound.Vehicle.Physics
                 ContactSampleCount = contact.SampleCount,
                 SuspensionCompressionMeters = compression,
                 NormalLoadNewtons = normalLoad,
-                SlipRatio = slipRatio,
+                SlipRatio = (float)contactStep.SlipRatio,
                 SlipAngleDegrees = slipAngle * Mathf.Rad2Deg,
                 LongitudinalForceNewtons = longitudinalForce,
                 LateralForceNewtons = lateralForce,
@@ -290,8 +323,8 @@ namespace MotorBound.Vehicle.Physics
                 WaterFilmDepthMillimeters = surface != null ? surface.WaterFilmDepthMillimeters : 0f,
                 ContactPointWorld = contact.Point,
                 ContactNormalWorld = contact.Normal,
-                SlipDemandRatio = (float)forceResult.SlipDemandRatio,
-                IsSliding = forceResult.IsSliding,
+                SlipDemandRatio = (float)contactStep.FinalTireState.SlipDemandRatio,
+                IsSliding = contactStep.FinalTireState.IsSliding,
                 SurfaceName = surfaceName
             };
         }

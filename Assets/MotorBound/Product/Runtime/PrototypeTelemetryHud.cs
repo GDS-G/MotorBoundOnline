@@ -39,7 +39,7 @@ namespace MotorBound.Product
             var telemetry = controller.Telemetry;
             var width = Mathf.Min(520f, Screen.width - 32f);
             GUILayout.BeginArea(new Rect(16f, 16f, width, Screen.height - 32f), GUI.skin.box);
-            GUILayout.Label("MOTORBOUND // VEHICLE DYNAMICS PROTOTYPE", headingStyle);
+            GUILayout.Label("MOTORBOUND // VEHICLE DYNAMICS " + Application.version, headingStyle);
             GUILayout.Label(telemetry.VehicleName, bodyStyle);
             GUILayout.Space(6f);
             GUILayout.Label(
@@ -69,12 +69,16 @@ namespace MotorBound.Product
                     telemetry.LocalAccelerationMetersPerSecondSquared.x,
                     telemetry.LocalAccelerationMetersPerSecondSquared.z),
                 bodyStyle);
+            GUILayout.Label("Traction control: " + (controller.RoadTractionControlEnabled
+                ? "ROAD ON" + (telemetry.TractionControlActive ? " / limiting wheelspin" : "")
+                : "OFF / unassisted") + "  |  F2 toggle", bodyStyle);
             GUILayout.Space(8f);
             var frontSliding = false;
             var rearSliding = false;
             if (telemetry.Wheels != null)
                 for (var index = 0; index < telemetry.Wheels.Length; index++)
-                    if (telemetry.Wheels[index].Grounded && telemetry.Wheels[index].IsSliding)
+                    if (telemetry.SpeedMetersPerSecond >= 2f && telemetry.Wheels[index].Grounded
+                        && telemetry.Wheels[index].NormalLoadNewtons > 20f && telemetry.Wheels[index].IsSliding)
                     {
                         if (index < 2) frontSliding = true;
                         else rearSliding = true;
@@ -105,7 +109,7 @@ namespace MotorBound.Product
 
             GUILayout.Space(10f);
             GUILayout.Label("W throttle  |  S brake  |  A/D steer  |  Space handbrake", bodyStyle);
-            GUILayout.Label("Backspace recover  |  F1 hide/show telemetry", bodyStyle);
+            GUILayout.Label("Backspace recover  |  F1 telemetry  |  F2 traction control", bodyStyle);
             GUILayout.EndArea();
         }
 

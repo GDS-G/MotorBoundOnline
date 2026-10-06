@@ -76,13 +76,66 @@ namespace MotorBound.Product.Tests
             controller.Configure(PrototypeGarageCatalog.Compile(PrototypeGarageCatalog.CreateNewState()).Vehicle);
             var driver = vehicle.GetComponent<PrototypeInputDriver>();
             driver.ApplyInput(new VehicleInputState(0f, 0f, 1f, 0f), 0.1f);
-            Assert.That(driver.SteeringInput, Is.EqualTo(0.35f).Within(0.00001f));
+            Assert.That(driver.SteeringInput, Is.EqualTo(0.2f).Within(0.00001f));
             driver.DrivingEnabled = false;
             driver.ApplyInput(new VehicleInputState(1f, 0f, 1f, 0f), 0.1f);
             Assert.That(driver.SteeringInput, Is.Zero);
             driver.DrivingEnabled = true;
             driver.ApplyInput(default(VehicleInputState), 0.1f);
             Assert.That(driver.SteeringInput, Is.Zero);
+        }
+
+        [TestCase(-1f, 30)]
+        [TestCase(1f, 30)]
+        [TestCase(-1f, 60)]
+        [TestCase(1f, 60)]
+        [TestCase(-1f, 144)]
+        [TestCase(1f, 144)]
+        public void KeyboardSteering_HeldKeyReachesFullRangeInHalfSecond(float direction, int inputFrequency)
+        {
+            var vehicle = CreateVehicle();
+            var controller = vehicle.GetComponent<RaycastVehicleController>();
+            controller.Configure(PrototypeGarageCatalog.Compile(PrototypeGarageCatalog.CreateNewState()).Vehicle);
+            var driver = vehicle.GetComponent<PrototypeInputDriver>();
+            for (var frame = 0; frame < inputFrequency / 2; frame++)
+                driver.ApplyInput(new VehicleInputState(1f, 0f, direction, 0f), 1f / inputFrequency);
+            Assert.That(driver.SteeringInput, Is.EqualTo(direction).Within(0.00001f));
+        }
+
+        [TestCase(-1f)]
+        [TestCase(1f)]
+        public void KeyboardSteering_CountersteerUnwindsOldTurnPromptly(float direction)
+        {
+            var vehicle = CreateVehicle();
+            var controller = vehicle.GetComponent<RaycastVehicleController>();
+            controller.Configure(PrototypeGarageCatalog.Compile(PrototypeGarageCatalog.CreateNewState()).Vehicle);
+            var driver = vehicle.GetComponent<PrototypeInputDriver>();
+            driver.ApplyInput(new VehicleInputState(0f, 0f, direction, 0f), 1f);
+            driver.ApplyInput(new VehicleInputState(0f, 0f, -direction, 0f), 0.1f);
+            Assert.That(driver.SteeringInput * direction, Is.LessThan(0f),
+                "Countersteering must not retain the old turn for the slower half-second press ramp.");
+            Assert.That(Mathf.Abs(driver.SteeringInput), Is.EqualTo(1f / 30f).Within(0.00001f));
+        }
+
+        [Test]
+        public void RoadTractionControl_IsVisibleSwitchableAndRetainedDuringReconfiguration()
+        {
+            var vehicle = CreateVehicle();
+            var controller = vehicle.GetComponent<RaycastVehicleController>();
+            var configuration = PrototypeGarageCatalog.Compile(PrototypeGarageCatalog.CreateNewState());
+            controller.Configure(configuration.Vehicle);
+            var driver = vehicle.GetComponent<PrototypeInputDriver>();
+            Assert.That(controller.RoadTractionControlEnabled, Is.True);
+            driver.DrivingEnabled = false;
+            driver.ToggleRoadTractionControl();
+            Assert.That(controller.RoadTractionControlEnabled, Is.True, "Garage controls must not change driving preferences.");
+            driver.DrivingEnabled = true;
+            driver.ToggleRoadTractionControl();
+            Assert.That(controller.RoadTractionControlEnabled, Is.False);
+            controller.Configure(configuration.Vehicle);
+            Assert.That(controller.RoadTractionControlEnabled, Is.False);
+            driver.ToggleRoadTractionControl();
+            Assert.That(controller.RoadTractionControlEnabled, Is.True);
         }
 
         [Test]

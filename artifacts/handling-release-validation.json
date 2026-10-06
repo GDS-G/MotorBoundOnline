@@ -1,0 +1,36 @@
+{
+  "Date": "2026-10-06",
+  "PlayerVersion": "0.2.4",
+  "UnityVersion": "2022.3.62f2",
+  "NativeEditModeTests": { "Total": 164, "Passed": 164, "Failed": 0 },
+  "DomainVerificationChecks": { "Total": 15, "Passed": 15 },
+  "NativeCornering": {
+    "Maneuvers": 70,
+    "Assertions": 501,
+    "Passed": true,
+    "UnassistedHistoricalManeuvers": 22,
+    "RoadAssistedRoutineManeuvers": 48,
+    "RoutineWheelPackages": ["stock-road", "touring-road"],
+    "Report": "artifacts/cornering-validation.json",
+    "StockComparison": "artifacts/road-handling-comparison.json"
+  },
+  "NativeDriving": {
+    "Maneuvers": 16,
+    "Assertions": 267,
+    "Passed": true,
+    "Report": "artifacts/driving-validation.json"
+  },
+  "WindowsBuild": {
+    "Succeeded": true,
+    "SummaryBytes": 91800770,
+    "Executable": "Builds/Windows/0.2.4/MotorBoundVehiclePrototype.exe",
+    "OldRootFolderBuildNotOverwritten": true
+  },
+  "RenderedPlayerCheck": {
+    "Attempted": true,
+    "Verified": false,
+    "Limitation": "Computer-use launch_app timed out twice. Window/process refresh showed only the user's pre-existing root-folder player; it was not targeted, closed, or modified.",
+    "SaveCreatedOrOverwritten": false
+  },
+  "Scope": "Native scripted handling and unit regressions, successful Windows build. The new version's rendered startup/F2 key path and subjective human driving feel are not verified by this run. Stock and touring mild full-throttle bends pass automatic recovery checks; over-limit steering can still skid."
+}

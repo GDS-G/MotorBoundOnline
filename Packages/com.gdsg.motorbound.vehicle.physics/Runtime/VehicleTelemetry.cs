@@ -33,6 +33,9 @@ namespace MotorBound.Vehicle.Physics
         public int SimulationFrequencyHertz;
         public Vector3 LocalAccelerationMetersPerSecondSquared;
         public VehicleInputState Input;
+        public bool RoadTractionControlEnabled;
+        public bool TractionControlActive;
+        public float DeliveredDriveTorqueScale;
         public WheelTelemetry[] Wheels;
 
         public int GroundedWheelCount

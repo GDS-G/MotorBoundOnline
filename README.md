@@ -4,7 +4,7 @@ MotorBound Online's design targets a persistent automotive world built around me
 
 This repository currently contains milestone **0.2: a local garage → test drive → return-and-save loop** for one rear-wheel-drive Kiyora Aven. The garage's installed assembly determines vehicle mass, supported wheel visuals, tire parameters, and the operating envelope. Stock and touring wheel packages connect the assembly manifest, dependency planner, fitment checks, driving controller, and versioned local save.
 
-The driving prototype uses a 360 Hz critical-vehicle step, tire-width contact sampling, water/roughness surface state, and custom tire forces without Unity `WheelCollider`. Version 0.2.3 fixes the packaged-player skid shader startup error; it retains the 0.2.2 combined-grip/sliding response and the quicker steering return introduced in 0.2.1. Multiplayer, the economy, property ownership, and production vehicle inventory remain future work. See [the garage milestone guide](docs/prototypes/GARAGE_TEST_LOOP.md) for the acceptance loop, evidence, and limitations.
+The driving prototype uses a 360 Hz critical-vehicle step, tire-width contact sampling, water/roughness surface state, and custom tire forces without Unity `WheelCollider`. Version 0.2.4 adds stable wheel-slip integration, more progressive keyboard steering, a gentler sliding tail, and visible switchable road traction control. It retains the packaged-player shader fix and quick steering return. Multiplayer, the economy, property ownership, and production vehicle inventory remain future work. See [the garage milestone guide](docs/prototypes/GARAGE_TEST_LOOP.md) for the acceptance loop, evidence, and limitations.
 
 ## Open the prototype
 
@@ -29,10 +29,11 @@ Controls:
 - `F6`: recover to the garage with the current installed configuration
 - `Backspace`: upright and lift the vehicle at its current driving location
 - `F1`: toggle telemetry/help
+- `F2`: toggle road traction control (starts ON; OFF permits unassisted power slides)
 
 The course includes a workshop entrance with clearance checks, a skidpad, a 2.5 mm water-film section, a physical rough-road strip, lane markers, and obstacles. Parts are supplied for testing. The stock configuration is 1120 kg with 305 mm-radius, 205 mm-wide tires; touring plus required hardware is 1130 kg with 315 mm-radius, 225 mm-wide tires. These are provisional authored values, not measured real-vehicle calibration.
 
-Steering retains its full authored 32° range at speed. Full steering above 50 km/h can exceed the front tires' grip and push the car into a wide **front-tire skid**; that is not an input limiter or automatically a rear-wheel drift. Wheelspin and the handbrake now reduce the rear tires' available cornering grip. Try a brief Space press while turning, then release it and countersteer to catch the slide. Tire marks indicate actual post-peak sliding contacts; the F1 HUD distinguishes front, rear, and both-axle sliding.
+Steering retains its full authored 32° range at speed, reached in half a second of held-key input; short taps are less abrupt and release remains quick. Full steering above 50 km/h can exceed the front tires' grip and push the car into a wide **front-tire skid**; that is not an input limiter or automatically a rear-wheel drift. Road traction control reduces positive engine torque to limit wheelspin; the HUD shows when it intervenes, and F2 disables it. The handbrake remains available for deliberate slides. Try a brief Space press while turning, then release it and countersteer to catch the slide. Tire marks indicate actual post-peak sliding contacts; the F1 HUD distinguishes front, rear, and both-axle sliding.
 
 Save files use `Application.persistentDataPath/garage-v1.json`. A successful replacement retains the prior valid save as `garage-v1.json.bak`. Invalid, incomplete, or unsupported saves are preserved and block automatic replacement. Saving is explicit; leaving the game does not automatically save changes.
 
@@ -46,15 +47,17 @@ Save files use `Application.persistentDataPath/garage-v1.json`. A successful rep
 
 ## Verification
 
-On October 5, 2026, **109 native Unity EditMode tests passed**, including retained skid-shader loading/binding, the combined-slip/sliding-force curve, bounded skid geometry and cleanup, garage persistence, and steering release in both directions at 30, 60, and 144 Hz input updates. The 0.2.2 actual Unity driving validation passed **16 maneuvers and 267 assertions**, including the eight original handling maneuvers plus eight keyboard steering-release scenarios; the 0.2.3 shader-only fix does not change those physics. The generated report is `artifacts/driving-validation.json`, with historical 0.2.1 before/after release measurements in `artifacts/steering-release-comparison.json`.
+On October 6, 2026, **164 native Unity EditMode tests passed**, covering stable wheel integration, torque/force consistency, tire grip bounds and independent sliding tails, ROAD torque-control limits/bypasses, steering press/release/countersteer, garage persistence, and retained skid-shader loading. **15 engine-independent checks passed**. The actual dry/wet/rough-road driving run passed **16 maneuvers / 267 assertions** across stock/touring wheels and both steering directions.
 
-At 60 Hz input updates, the full steering command still centers in **83 ms**, compared with **300 ms** before the 0.2.1 release fix. With the 0.2.2 tire model, the faster dry-road release cases (approximately 51–53 km/h) added about **6.1–6.3°** of heading change over two seconds, with turning rate below **0.3°/s** by 500 ms without braking. These measurements cover both stock and touring configurations; subjective feel remains part of the player playtest.
+At 60 Hz, a held key reaches full steering in half a second and full-lock release centers in **83 ms**. All driving-run release cases had yaw magnitude below **0.22°/s at 500 ms**. Their press duration is now 0.55 seconds rather than 0.35 seconds, so heading totals should not be treated as same-input comparisons with older builds.
 
-The dedicated cornering run passed **22 maneuvers and 157 assertions** at 30, 45, 50, 55, and 70 km/h. It measures actual front-wheel pivot angle, axle slip, friction limits, contact-driven marks, and brief-handbrake recovery with countersteering. Full-lock turns retained 32° of steering at every tested speed; gentle 30/45 km/h turns stayed below the sliding peak and left no marks. The two brief-handbrake cases recovered after two seconds of slip-directed countersteering, retaining about 50.5 and 62.2 km/h from 55.2 and 70.0 km/h starts. Results are in `artifacts/cornering-validation.json`, with same-maneuver before/after tire-model measurements in `artifacts/cornering-comparison.json`.
+The cornering run passed **70 maneuvers / 501 assertions**: 22 unassisted tire-limit and handbrake-recovery cases plus 24 assisted routine cases on each wheel package. Mild full-throttle bends at 30/50/70 km/h left no marks; the 70 km/h bends peaked at about **1.68° stock / 1.70° touring** body sideslip and regained sustained near-straight travel about **1.03 / 1.20 seconds** after release. Full 32° steering remains available at every tested speed, and intentional unassisted slides remain possible. Results: `artifacts/cornering-validation.json`; stock before/after comparison: `artifacts/road-handling-comparison.json`. Human driving-feel playtesting remains necessary.
 
-The **Windows player version 0.2.3 built successfully** at `Builds/Windows/MotorBoundVehiclePrototype.exe` (build summary: 91,792,018 bytes). Keep its adjacent data files when running or copying the player. A rendered 0.2.3 player check confirmed workshop startup, test-drive transition, and garage recovery without exceptions, after reproducing the 0.2.2 failure. The skid shader is now an explicit Resources dependency rather than an Editor-only `Shader.Find("Standard")` assumption. Contact-driven skid geometry is covered by native tests; human high-speed feel and skid visibility remain playtest work.
+The **Windows player version 0.2.4 built successfully** at `Builds/Windows/0.2.4/MotorBoundVehiclePrototype.exe` (build summary: 91,800,770 bytes). This versioned folder leaves a running older root-folder player untouched. Keep the adjacent data files when running or copying it. The retained skid-shader Resources dependency and material binding still pass native tests; human high-speed feel remains playtest work.
 
-Measured mean controller-plus-`Physics.Simulate` step time was approximately **72–88 µs** in the 0.2.2 driving run at 360 Hz. This excludes rendering and UI and is not a rendered frame-rate or hardware performance guarantee.
+The new rendered startup/F2 key path remains unverified because computer-use launch attempts timed out. Refreshed process/window checks showed only the user's existing player; no save was created or overwritten. `artifacts/handling-release-validation.json` records that limitation separately from successful native tests/building.
+
+Measured mean controller-plus-`Physics.Simulate` step time was approximately **77–84 µs** in the 0.2.4 driving run at 360 Hz. This excludes rendering and UI and is not a rendered frame-rate or hardware performance guarantee.
 
 From Unity, run **Window > General > Test Runner > EditMode**, then **MotorBound > Validate Driving Physics** outside Play Mode with modified scenes saved. To produce a Windows development player, run this from the repository root (adjust the Editor executable for your installation):
 
@@ -64,11 +67,11 @@ $unityEditor = 'C:\Program Files\Unity\Hub\Editor\2022.3.62f2\Editor\Unity.exe'
 & $unityEditor `
   -batchmode -nographics -quit `
   -projectPath $motorBoundProject `
-  -executeMethod MotorBound.Editor.PrototypeProjectSetup.BuildWindowsPrototype `
+  -executeMethod MotorBound.Editor.PrototypeProjectSetup.BuildVersionedWindowsPrototype `
   -logFile '-'
 ```
 
-After a successful build, launch `Builds/Windows/MotorBoundVehiclePrototype.exe` with its adjacent data files intact. For native test, driving-validation, and engine-independent commands, see [the milestone guide](docs/prototypes/GARAGE_TEST_LOOP.md#verification).
+After a successful versioned build, launch `Builds/Windows/0.2.4/MotorBoundVehiclePrototype.exe` with its adjacent data files intact. The original **MotorBound > Build Windows Prototype** menu still targets the root Windows folder; do not use it while that older player is running. For native test, driving-validation, and engine-independent commands, see [the milestone guide](docs/prototypes/GARAGE_TEST_LOOP.md#verification).
 
 ## Production engine gate
 

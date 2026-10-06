@@ -2,7 +2,7 @@
 
 The milestone connects one Kiyora Aven's installed assembly to a playable local workshop, test drive, and explicit save/reload loop. It uses the existing vehicle-core foundations to make a supported part change observable in the same vehicle that is driven and saved.
 
-The current checkout is `C:\Users\Michael\OneDrive\Documents\ASR_MotorBound Online\MotorBoundOnline`. Instructions and commands use the repository root, so another checkout can be used without editing source paths. The prototype Editor baseline remains Unity `2022.3.62f2`; the current product version is `0.2.3`.
+The current checkout is `C:\Users\Michael\OneDrive\Documents\ASR_MotorBound Online\MotorBoundOnline`. Instructions and commands use the repository root, so another checkout can be used without editing source paths. The prototype Editor baseline remains Unity `2022.3.62f2`; the current product version is `0.2.4`.
 
 ## Play the acceptance loop
 
@@ -31,6 +31,7 @@ The workshop is centered at world `(0, 0, -121)`. Entry checks position, height,
 | `F6` | Recover to the workshop, retaining the installed configuration |
 | Backspace | Upright and lift the car at its current driving location |
 | `F1` | Toggle driving telemetry/help |
+| `F2` | Toggle road traction control while driving (starts ON; OFF allows unassisted power slides) |
 
 ## What the installed assembly changes
 
@@ -55,9 +56,13 @@ Body height, ground clearance, nominal center-of-mass height, and reference appr
 
 ## Tire grip and skid feedback
 
-The steering command still maps directly to the authored maximum wheel angle at every speed; there is no 50 km/h cutoff. At high speed, requesting a tight full-lock turn can exceed front grip and produce understeer: the front tires skid while the rear largely holds. A rear slide depends on the balance of grip, wheelspin, braking, and load transfer, not just the steering key.
+The steering command still maps directly to the authored maximum wheel angle at every speed; there is no 50 km/h cutoff. Digital steering presses progress at 2 normalized units/s, reaching the complete 32° range after half a second. Release and unwinding an old turn during countersteering use 12 units/s. At high speed, requesting a tight full-lock turn can exceed front grip and produce understeer: the front tires skid while the rear largely holds. A rear slide depends on the balance of grip, wheelspin, braking, and load transfer, not just the steering key.
 
 Version 0.2.2 replaces independent longitudinal/lateral saturation with one direction-preserving combined-slip demand. The force curve retains the authored stiffness at small slip, peaks continuously at the friction limit, then decreases toward an authored sliding fraction of 0.78. A locked or spinning wheel therefore cannot simultaneously retain almost full lateral grip. This is a compact provisional model, not a fitted full Pacejka model or measured-car calibration. The sine/atan curve structure is informed by [MathWorks' tire-road interaction documentation](https://www.mathworks.com/help/sdl/ref/tireroadinteractionmagicformula.html); combining the demand vector is this prototype's simplifying assumption.
+
+Version 0.2.4 independently softens the stock sliding tail to 0.90 while preserving the existing peak location, dry friction, stiffness, and shared-force direction. Grounded wheel rotation uses adaptive substeps with averaged transmitted forces, preventing low-speed wheel-slip integration chatter. The contact/chassis simulation remains 360 Hz; this is not a new chassis stabilization force.
+
+The road prototype starts with visible traction control ON because W is an on/off throttle. The HUD labels its status and intervention; F2 disables it. It reduces positive engine torque to limit power-induced wheelspin while reserving cornering grip; it does not auto-steer, add yaw forces, change the tire friction limit, or provide ABS. Handbrake initiation remains available. OFF is the unassisted mode for power-slide comparisons. This setting is a prototype driving preference, not factory/installed-part data or a saved assembly change. See [the researched handling choices](VEHICLE_DYNAMICS_RESEARCH_BRIEF.md#handling-references-reviewed--october-6-2026) for the distinction between other games' documented choices and MotorBound's implementation.
 
 Skid marks use grounded, loaded, post-peak contacts and actual tire width, with a fixed 2,048-segment pool. Contact loss, pause, recovery, and large jumps break trails. They do not appear merely because a steering key is held. The F1 HUD reports front, rear, or both-axle sliding. Gentle steering should remain composed; test hard steering around 50–70 km/h, then compare a brief handbrake input followed by release and countersteering. Holding the handbrake through the entire turn can spin the car.
 
@@ -83,6 +88,19 @@ The save store:
 If recovery is needed, close the prototype, preserve copies of both the active file and any backup, and inspect the reported problem. An independently verified valid backup can be copied into the active location after the original is retained elsewhere. Do not edit arbitrary part values to bypass validation. A future schema needs an explicit migration; none is implemented here.
 
 ## Verification
+
+Road-handling update (version 0.2.4) on October 6, 2026:
+
+- Reviewed developer explanations/manuals for NFS Heat/Unbound, Test Drive Unlimited, and Motor City Online. The implementation uses their documented design lessons, not proprietary equations or coefficients; sources and interpretations are recorded in the research brief.
+- **164/164 native EditMode tests passed** and **15 engine-independent checks passed**. Coverage includes wheel integration without low-speed sign chatter, angular momentum/force averaging, genuine over-grip wheelspin, static brake locking, unchanged tire peak/prepeak response, smooth independent sliding tails, steering press/release/countersteer, explicit traction-control torque limits and bypasses, and the existing garage/shader regressions.
+- The expanded cornering run passed **70 maneuvers / 501 assertions**: 22 unassisted historical limit/recovery cases, plus the same 24 full-throttle/coasting routine cases on each of stock and touring wheels. Small-correction recovery and mild-bend settlement are now acceptance conditions, not merely recorded observations. Release heading is accumulated rather than inferred from a wrapped end angle.
+- All six mild 0.06-steering, full-throttle bends at 30/50/70 km/h produced **no skid marks**. At 70 km/h, peak body sideslip was about **1.68° stock / 1.70° touring**, final yaw about **0.34°/s / 0.68°/s**, and sustained near-straight settlement began about **1.03 / 1.20 seconds** after release. Near-/over-limit 0.12/0.20 commands remain stress tests and can still leave tire marks; traction control does not create grip beyond the tire limit.
+- `artifacts/road-handling-comparison.json` preserves 21 matching 0.2.3-versus-0.2.4 stock cases and the additional mild-bend candidate measurements. Baseline routine checks originally permitted spins: first unassisted 0.2.4 candidate's mild 70 km/h full-throttle bend reached about 47° sideslip. Visible ROAD torque control, with stronger cornering reserve, removed that runaway behavior. This comparison combines several changes and is not a single-coefficient causal experiment.
+- The separate driving run passed **16 maneuvers / 267 assertions** across dry/wet/rough surfaces, both wheel packages, and left/right steering releases. Full-lock release still centers in **83 ms**, with yaw magnitude below **0.22°/s at 500 ms** in those release scenarios. Their held-key ramp lasts 0.55 seconds to reach full lock with the new input response, so their heading totals are not directly comparable to earlier 0.35-second press scenarios.
+- ROAD mode caps a common positive engine torque, using the lower loaded driven contact's capacity; it neither creates chassis yaw forces nor clamps wheel rotation to road speed. The target slip is 0.045 through 0.1° measured tire slip angle, smoothly reduced to 0.020 at 1°. OFF, handbrake use, and nonpositive drive torque bypass the actuator. Wet/low-speed feedback can still have small torque modulation; refined ECU/drivetrain dynamics and human feel calibration remain future work.
+- Mean controller-plus-`Physics.Simulate` time was about **77–84 µs/step** on this machine. This excludes rendering/UI/networking and is not a target-machine frame-rate guarantee.
+- **Windows development player 0.2.4 built successfully**, reporting 91,800,770 bytes, in `Builds/Windows/0.2.4/MotorBoundVehiclePrototype.exe`. The already running root-folder 0.2.3 player was not closed or overwritten. Keep the new executable's adjacent data directory/files together.
+- The new player's rendered startup/F2 key path could not be checked: two computer-use launch attempts timed out, and refreshed window/process lists showed only the user's existing player. No player save was created or overwritten. `artifacts/handling-release-validation.json` distinguishes native verification from this UI limitation. Human playtesting is still required.
 
 Packaged-player startup hotfix (version 0.2.3) on October 5, 2026:
 
@@ -153,11 +171,11 @@ dotnet run --project tools/MotorBound.DomainVerification/MotorBound.DomainVerifi
 # Windows development-player build.
 & $unityEditor -batchmode -nographics -quit `
   -projectPath $motorBoundProject `
-  -executeMethod MotorBound.Editor.PrototypeProjectSetup.BuildWindowsPrototype `
+  -executeMethod MotorBound.Editor.PrototypeProjectSetup.BuildVersionedWindowsPrototype `
   -logFile (Join-Path $motorBoundProject 'artifacts/windows-build.log')
 ```
 
-Inspect each run's result before proceeding; a successful compilation is not a successful test or player build. A successful Windows build produces `Builds/Windows/MotorBoundVehiclePrototype.exe` and adjacent required data files. The Editor equivalents are **Window > General > Test Runner > EditMode**, **MotorBound > Validate Driving Physics**, **MotorBound > Validate Cornering Physics**, and **MotorBound > Build Windows Prototype**. Save modified scenes before driving validation.
+Inspect each run's result before proceeding; a successful compilation is not a successful test or player build. A successful versioned Windows build produces `Builds/Windows/0.2.4/MotorBoundVehiclePrototype.exe` and adjacent required data files. The Editor equivalents are **Window > General > Test Runner > EditMode**, **MotorBound > Validate Driving Physics**, **MotorBound > Validate Cornering Physics**, and **MotorBound > Build Versioned Windows Prototype**. The original **Build Windows Prototype** targets `Builds/Windows` directly and must not overwrite a running player's files. Save modified scenes before driving validation.
 
 ## Boundaries and next work
 

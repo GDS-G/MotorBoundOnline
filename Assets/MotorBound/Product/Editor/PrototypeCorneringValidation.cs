@@ -67,6 +67,28 @@ namespace MotorBound.Editor
                 RunManeuver(touring, 70f, 1f, 0.2f, 1f, "handbrake hard", report);
                 RunManeuver(stock, 55f, 1f, 0.2f, 1f, "brief handbrake and countersteer recovery", report, true);
                 RunManeuver(stock, 70f, 1f, 0.2f, 1f, "brief handbrake and countersteer recovery", report, true);
+                foreach (var routineConfiguration in new[] { stock, touring })
+                {
+                    foreach (var speed in new[] { 30f, 50f, 70f })
+                    {
+                        RunRoutineManeuver(routineConfiguration, speed, "80 ms right key tap with throttle", 1f,
+                            new[] { new InputSegment(0.08f, 1f) }, report);
+                        RunRoutineManeuver(routineConfiguration, speed, "150 ms left key tap with throttle", 1f,
+                            new[] { new InputSegment(0.15f, -1f) }, report);
+                        RunRoutineManeuver(routineConfiguration, speed, "gentle 0.12 right with throttle", 1f,
+                            new[] { new InputSegment(0.8f, 0.12f) }, report);
+                        RunRoutineManeuver(routineConfiguration, speed, "mild 0.06 right with throttle", 1f,
+                            new[] { new InputSegment(0.8f, 0.06f) }, report);
+                        RunRoutineManeuver(routineConfiguration, speed, "gentle 0.20 left with throttle", 1f,
+                            new[] { new InputSegment(0.8f, -0.2f) }, report);
+                        RunRoutineManeuver(routineConfiguration, speed, "150 ms right key tap coasting", 0f,
+                            new[] { new InputSegment(0.15f, 1f) }, report);
+                        RunRoutineManeuver(routineConfiguration, speed, "keyboard right-left lane change with throttle", 1f,
+                            new[] { new InputSegment(0.15f, 1f), new InputSegment(0.2f, 0f), new InputSegment(0.15f, -1f) }, report);
+                        RunRoutineManeuver(routineConfiguration, speed, "gentle alternating slalom with throttle", 1f,
+                            new[] { new InputSegment(0.4f, 0.12f), new InputSegment(0.8f, -0.12f), new InputSegment(0.4f, 0.12f) }, report);
+                    }
+                }
             }
             catch (Exception exception)
             {
@@ -106,6 +128,7 @@ namespace MotorBound.Editor
             PrototypeBootstrap.AddReferenceBody(car);
             var controller = car.AddComponent<RaycastVehicleController>();
             controller.Configure(configuration.Vehicle);
+            controller.RoadTractionControlEnabled = false;
             var driver = car.AddComponent<PrototypeInputDriver>();
             driver.Configure(controller);
             var body = car.GetComponent<Rigidbody>();
@@ -133,6 +156,7 @@ namespace MotorBound.Editor
                 RequestedThrottle = throttle,
                 RequestedHandbrake = handbrake,
                 IsRecoveryManeuver = recover,
+                RoadTractionControlEnabled = controller.RoadTractionControlEnabled,
                 SteeringHoldSeconds = recover ? 0.2f : TurnDuration,
                 AuthoredMaximumSteeringDegrees = (float)configuration.Vehicle.MaximumSteeringAngleDegrees
             };
@@ -162,6 +186,11 @@ namespace MotorBound.Editor
                     result.AppliedSteeringDegreesAfter300Milliseconds = Mathf.DeltaAngle(0f, steeringPivot.localEulerAngles.y);
                     result.SpeedAfter300MillisecondsKilometersPerHour = body.velocity.magnitude * 3.6f;
                 }
+                if (frame == 29)
+                {
+                    result.SteeringInputAfter500Milliseconds = controller.Telemetry.Input.Steering;
+                    result.AppliedSteeringDegreesAfter500Milliseconds = Mathf.DeltaAngle(0f, steeringPivot.localEulerAngles.y);
+                }
             }
             result.SpeedAfterTurnKilometersPerHour = body.velocity.magnitude * 3.6f;
             result.SkidMarkSegmentCount = skidTrails.SegmentCount;
@@ -179,9 +208,12 @@ namespace MotorBound.Editor
                 RunRecovery(driver, controller, body, skidTrails, result, report);
             else
             {
-                Check(Mathf.Abs(result.SteeringInputAfter300Milliseconds - steering) < 0.0001f,
+                var expectedProgressiveSteering = Mathf.Sign(steering) * Mathf.Min(Mathf.Abs(steering), 0.6f);
+                Check(Mathf.Abs(result.SteeringInputAfter300Milliseconds - expectedProgressiveSteering) < 0.0001f,
+                    result.Name + ": keyboard steering must progress at two full-input units per second.", report);
+                Check(Mathf.Abs(result.SteeringInputAfter500Milliseconds - steering) < 0.0001f,
                     result.Name + ": live keyboard response must reach requested steering without a speed limiter.", report);
-                Check(Mathf.Abs(Mathf.Abs(result.AppliedSteeringDegreesAfter300Milliseconds)
+                Check(Mathf.Abs(Mathf.Abs(result.AppliedSteeringDegreesAfter500Milliseconds)
                                 - Mathf.Abs(steering) * result.AuthoredMaximumSteeringDegrees) < 0.001f,
                     result.Name + ": front wheel angle must preserve the authored steering range at speed.", report);
             }
@@ -262,6 +294,146 @@ namespace MotorBound.Editor
                 result.Name + ": rear tires must resume rolling after the handbrake is released.", report);
             Check(result.SpeedAfterRecoveryKilometersPerHour > result.SpeedAtTurnKilometersPerHour * 0.5f,
                 result.Name + ": recovery must preserve forward travel rather than settle by stopping the car.", report);
+        }
+
+        private static void RunRoutineManeuver(PrototypeGarageConfiguration configuration, float targetSpeedKmh,
+            string label, float throttle, InputSegment[] segments, CorneringReport report)
+        {
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            var ground = new GameObject("Routine handling dry asphalt", typeof(BoxCollider), typeof(SurfaceGrip));
+            ground.transform.position = new Vector3(0f, -0.12f, 0f);
+            ground.GetComponent<BoxCollider>().size = new Vector3(3000f, 0.24f, 3000f);
+            ground.GetComponent<SurfaceGrip>().Configure(1f, "Dry asphalt", 0f, 0f);
+            var car = new GameObject("Routine handling Kiyora Aven", typeof(Rigidbody));
+            car.transform.position = new Vector3(0f, 0.92f, 0f);
+            PrototypeBootstrap.AddReferenceBody(car);
+            var controller = car.AddComponent<RaycastVehicleController>();
+            controller.Configure(configuration.Vehicle);
+            controller.RoadTractionControlEnabled = true;
+            var driver = car.AddComponent<PrototypeInputDriver>();
+            driver.Configure(controller);
+            var body = car.GetComponent<Rigidbody>();
+            var steeringPivot = car.transform.Find("Front Left Visual");
+            UnityEngine.Physics.SyncTransforms();
+            for (var frame = 0; frame < 120; frame++)
+                AdvanceFrame(driver, controller, body, default(VehicleInputState), null, 0f);
+            var accelerationFrames = 0;
+            while (body.velocity.magnitude * 3.6f < targetSpeedKmh && accelerationFrames < 60 * 30)
+            {
+                AdvanceFrame(driver, controller, body, new VehicleInputState(1f, 0f, 0f, 0f), null, 0f);
+                accelerationFrames++;
+            }
+            var result = new ManeuverResult
+            {
+                Name = configuration.WheelPackageName + " / " + targetSpeedKmh + " km/h / " + label,
+                WheelPackageKey = configuration.WheelPackageKey,
+                RequestedSpeedKilometersPerHour = targetSpeedKmh,
+                SpeedAtTurnKilometersPerHour = body.velocity.magnitude * 3.6f,
+                AccelerationSeconds = accelerationFrames * InputStep,
+                RequestedThrottle = throttle,
+                AuthoredMaximumSteeringDegrees = (float)configuration.Vehicle.MaximumSteeringAngleDegrees,
+                IsRoutineHandlingManeuver = true,
+                RoadTractionControlEnabled = controller.RoadTractionControlEnabled,
+                RoutineInputSegments = segments,
+                InputCenteringAfterFinalReleaseSeconds = -1f,
+                YawSettlingAfterFinalReleaseSeconds = -1f
+            };
+            report.RoutineHandling.Add(result);
+            var trails = car.AddComponent<PrototypeSkidTrails>();
+            trails.Configure(controller);
+            var start = body.position;
+            var previousYaw = body.rotation.eulerAngles.y;
+            var elapsedFrames = 0;
+            foreach (var segment in segments)
+            {
+                var segmentFrames = Mathf.RoundToInt(segment.Seconds / InputStep);
+                result.SteeringHoldSeconds += segmentFrames * InputStep;
+                result.RequestedSteering = Mathf.Max(result.RequestedSteering, Mathf.Abs(segment.Steering));
+                for (var frame = 0; frame < segmentFrames; frame++)
+                {
+                    elapsedFrames++;
+                    AdvanceFrame(driver, controller, body, new VehicleInputState(throttle, 0f, segment.Steering, 0f),
+                        result, elapsedFrames * InputStep);
+                    trails.SampleContacts();
+                    RecordHeadingAndSteering(body, steeringPivot, result, ref previousYaw);
+                }
+            }
+            result.SpeedAtFinalSteeringReleaseKilometersPerHour = body.velocity.magnitude * 3.6f;
+            result.BodySideslipAtFinalSteeringReleaseDegrees = SideslipDegrees(body);
+            result.YawRateAtFinalSteeringReleaseDegreesPerSecond = Vector3.Dot(body.angularVelocity, Vector3.up) * Mathf.Rad2Deg;
+            var finalReleaseYaw = body.rotation.eulerAngles.y;
+            var settledFrames = 0;
+            for (var frame = 0; frame < 90; frame++)
+            {
+                elapsedFrames++;
+                AdvanceFrame(driver, controller, body, new VehicleInputState(throttle, 0f, 0f, 0f), result,
+                    elapsedFrames * InputStep);
+                trails.SampleContacts();
+                var yawBeforeReleaseFrame = previousYaw;
+                RecordHeadingAndSteering(body, steeringPivot, result, ref previousYaw);
+                result.AccumulatedAdditionalHeadingAfterFinalReleaseDegrees += Mathf.DeltaAngle(yawBeforeReleaseFrame, previousYaw);
+                var releaseSeconds = (frame + 1) * InputStep;
+                var yawRate = Vector3.Dot(body.angularVelocity, Vector3.up) * Mathf.Rad2Deg;
+                var sideslip = SideslipDegrees(body);
+                if (result.InputCenteringAfterFinalReleaseSeconds < 0f
+                    && Mathf.Abs(controller.Telemetry.Input.Steering) <= 0.0001f)
+                    result.InputCenteringAfterFinalReleaseSeconds = releaseSeconds;
+                if (Mathf.Abs(yawRate) < 1f && Mathf.Abs(sideslip) < 1f) settledFrames++;
+                else settledFrames = 0;
+                if (settledFrames >= 12 && result.YawSettlingAfterFinalReleaseSeconds < 0f)
+                    result.YawSettlingAfterFinalReleaseSeconds = releaseSeconds - 11f * InputStep;
+                result.PeakBodySideslipAfterFinalReleaseDegrees = Mathf.Max(result.PeakBodySideslipAfterFinalReleaseDegrees,
+                    Mathf.Abs(sideslip));
+                if (frame == 8) result.YawRateAfterFinalRelease150MillisecondsDegreesPerSecond = yawRate;
+                if (frame == 29) result.YawRateAfterFinalRelease500MillisecondsDegreesPerSecond = yawRate;
+                if (frame == 59) result.YawRateAfterFinalRelease1SecondDegreesPerSecond = yawRate;
+            }
+            result.AdditionalHeadingAfterFinalReleaseDegrees = Mathf.DeltaAngle(finalReleaseYaw, body.rotation.eulerAngles.y);
+            result.SpeedAfterTurnKilometersPerHour = body.velocity.magnitude * 3.6f;
+            result.SpeedLossKilometersPerHour = result.SpeedAtTurnKilometersPerHour - result.SpeedAfterTurnKilometersPerHour;
+            result.LateralDisplacementMeters = body.position.x - start.x;
+            result.TravelDistanceMeters = Vector3.Distance(start, body.position);
+            result.FinalBodySideslipDegrees = SideslipDegrees(body);
+            result.FinalYawRateDegreesPerSecond = Vector3.Dot(body.angularVelocity, Vector3.up) * Mathf.Rad2Deg;
+            result.FinalLateralAccelerationMetersPerSecondSquared = controller.Telemetry.LocalAccelerationMetersPerSecondSquared.x;
+            result.SkidMarkSegmentCount = trails.SegmentCount;
+            result.MeanFrontForceEnvelopeUtilization = (float)(result.FrontUtilizationSum / Math.Max(1, result.FrontGroundedSamples));
+            result.MeanRearForceEnvelopeUtilization = (float)(result.RearUtilizationSum / Math.Max(1, result.RearGroundedSamples));
+            result.MeanLateFrontSlipAngleDegrees = (float)(result.LateFrontSlipSum / Math.Max(1, result.LateFrontSamples));
+            result.MeanLateRearSlipAngleDegrees = (float)(result.LateRearSlipSum / Math.Max(1, result.LateRearSamples));
+            result.Classification = Classify(result);
+            Check(result.SpeedAtTurnKilometersPerHour >= targetSpeedKmh
+                  && result.SpeedAtTurnKilometersPerHour <= targetSpeedKmh + 1f,
+                result.Name + ": routine maneuver must start at the authored test speed.", report);
+            Check(result.FrontGroundedSamples > 0 && result.RearGroundedSamples > 0 && result.UnknownSurfaceSamples == 0,
+                result.Name + ": routine steering must maintain valid road contact.", report);
+            Check(result.MinimumUprightDot > 0.15f && result.MinimumHeightMeters > -0.5f && result.MaximumHeightMeters < 4f,
+                result.Name + ": routine steering must remain upright and within bounded height.", report);
+            Check(result.PeakFrontForceEnvelopeUtilization <= 1.001f && result.PeakRearForceEnvelopeUtilization <= 1.001f,
+                result.Name + ": routine delivered tire forces must stay inside the available grip envelope.", report);
+            Check(result.InputCenteringAfterFinalReleaseSeconds >= 0f
+                  && result.InputCenteringAfterFinalReleaseSeconds <= 0.10001f,
+                result.Name + ": released steering must center within 100 milliseconds.", report);
+            Check(result.PeakBodySideslipDegrees < 10f,
+                result.Name + ": Road traction control must prevent a large unintended body slide during ordinary steering.", report);
+            var smallCorrection = label.Contains("key tap") || label.Contains("lane change") || label.Contains("mild 0.06");
+            if (smallCorrection)
+                Check(Mathf.Abs(result.FinalYawRateDegreesPerSecond) < 5f
+                      && Mathf.Abs(result.FinalBodySideslipDegrees) < 3f
+                      && Mathf.Abs(result.YawRateAfterFinalRelease500MillisecondsDegreesPerSecond) < 6f,
+                    result.Name + ": small steering corrections must settle without an unintended spin.", report);
+            if (label.Contains("mild 0.06"))
+                Check(result.YawSettlingAfterFinalReleaseSeconds >= 0f
+                      && result.YawSettlingAfterFinalReleaseSeconds < 1.5f,
+                    result.Name + ": mild steering must regain stable straight travel within 1.5 seconds of release.", report);
+        }
+
+        private static void RecordHeadingAndSteering(Rigidbody body, Transform steeringPivot, ManeuverResult result, ref float previousYaw)
+        {
+            result.HeadingChangeDegrees += Mathf.DeltaAngle(previousYaw, body.rotation.eulerAngles.y);
+            previousYaw = body.rotation.eulerAngles.y;
+            result.PeakAppliedSteeringDegrees = Mathf.Max(result.PeakAppliedSteeringDegrees,
+                Mathf.Abs(Mathf.DeltaAngle(0f, steeringPivot.localEulerAngles.y)));
         }
 
         private static void AdvanceFrame(PrototypeInputDriver driver, RaycastVehicleController controller, Rigidbody body,
@@ -382,8 +554,10 @@ namespace MotorBound.Editor
             public string UnityVersion;
             public int SimulationHertz;
             public int Assertions;
-            public string Scope = "Live 60 Hz keyboard input; manual 360 Hz Unity physics; stock/touring on dry asphalt. Slip and front-push labels are descriptive, not a drift requirement.";
+            public bool RoutineRoadTractionControlEnabled = true;
+            public string Scope = "Live 60 Hz keyboard input; manual 360 Hz Unity physics; stock/touring on dry asphalt. Historical Maneuvers explicitly disable Road traction control; RoutineHandling explicitly enables Road traction control. Slip and front-push labels are descriptive, not a drift requirement.";
             public List<ManeuverResult> Maneuvers = new List<ManeuverResult>();
+            public List<ManeuverResult> RoutineHandling = new List<ManeuverResult>();
             public List<string> Failures = new List<string>();
         }
 
@@ -400,10 +574,15 @@ namespace MotorBound.Editor
             public float RequestedThrottle;
             public float RequestedHandbrake;
             public bool IsRecoveryManeuver;
+            public bool IsRoutineHandlingManeuver;
+            public bool RoadTractionControlEnabled;
+            public InputSegment[] RoutineInputSegments;
             public float SteeringHoldSeconds;
             public float AuthoredMaximumSteeringDegrees;
             public float SteeringInputAfter300Milliseconds;
             public float AppliedSteeringDegreesAfter300Milliseconds;
+            public float SteeringInputAfter500Milliseconds;
+            public float AppliedSteeringDegreesAfter500Milliseconds;
             public float PeakSteeringInput;
             public float PeakAppliedSteeringDegrees;
             public float SpeedAfter300MillisecondsKilometersPerHour;
@@ -425,6 +604,18 @@ namespace MotorBound.Editor
             public float FinalBodySideslipDegrees;
             public float PeakYawRateDegreesPerSecond;
             public float FinalYawRateDegreesPerSecond;
+            public float FinalLateralAccelerationMetersPerSecondSquared;
+            public float SpeedAtFinalSteeringReleaseKilometersPerHour;
+            public float BodySideslipAtFinalSteeringReleaseDegrees;
+            public float YawRateAtFinalSteeringReleaseDegreesPerSecond;
+            public float InputCenteringAfterFinalReleaseSeconds;
+            public float YawSettlingAfterFinalReleaseSeconds;
+            public float PeakBodySideslipAfterFinalReleaseDegrees;
+            public float YawRateAfterFinalRelease150MillisecondsDegreesPerSecond;
+            public float YawRateAfterFinalRelease500MillisecondsDegreesPerSecond;
+            public float YawRateAfterFinalRelease1SecondDegreesPerSecond;
+            public float AdditionalHeadingAfterFinalReleaseDegrees;
+            public float AccumulatedAdditionalHeadingAfterFinalReleaseDegrees;
             public float PeakLateralAccelerationMetersPerSecondSquared;
             public float PeakFrontForceEnvelopeUtilization;
             public float PeakRearForceEnvelopeUtilization;
@@ -463,6 +654,19 @@ namespace MotorBound.Editor
             [NonSerialized] public double LateRearSlipSum;
             [NonSerialized] public int LateFrontSamples;
             [NonSerialized] public int LateRearSamples;
+        }
+
+        [Serializable]
+        private sealed class InputSegment
+        {
+            public float Seconds;
+            public float Steering;
+
+            public InputSegment(float seconds, float steering)
+            {
+                Seconds = seconds;
+                Steering = steering;
+            }
         }
     }
 }

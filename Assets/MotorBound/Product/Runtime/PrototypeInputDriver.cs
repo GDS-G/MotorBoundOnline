@@ -8,7 +8,9 @@ namespace MotorBound.Product
     {
         private RaycastVehicleController controller;
         private float smoothedSteering;
-        private const float SteeringPressRate = 3.5f;
+        // A short digital key tap should be a correction, not near-instant full lock.
+        // Held input still reaches the complete authored range in half a second at every speed.
+        private const float SteeringPressRate = 2f;
         // Keep key presses progressive, but stop holding a turn after the player releases it.
         private const float SteeringCenterRate = 12f;
         public float SteeringInput => smoothedSteering;
@@ -45,12 +47,19 @@ namespace MotorBound.Product
             var throttle = Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow) ? 1f : 0f;
             var brake = Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow) ? 1f : 0f;
             var handbrake = Input.GetKey(KeyCode.Space) ? 1f : 0f;
+            if (DrivingEnabled && Input.GetKeyDown(KeyCode.F2)) ToggleRoadTractionControl();
             ApplyInput(new VehicleInputState(throttle, brake, steeringTarget, handbrake), Time.deltaTime);
 
             if (DrivingEnabled && Input.GetKeyDown(KeyCode.Backspace))
             {
                 controller.Recover();
             }
+        }
+
+        public void ToggleRoadTractionControl()
+        {
+            if (controller != null && DrivingEnabled)
+                controller.RoadTractionControlEnabled = !controller.RoadTractionControlEnabled;
         }
 
         // The live keyboard path and native driving checks share the same response.
@@ -64,9 +73,17 @@ namespace MotorBound.Product
                 return;
             }
 
+            var remainingSeconds = Mathf.Max(0f, deltaTimeSeconds);
+            if (smoothedSteering * requestedInput.Steering < 0f)
+            {
+                // Countersteering must unwind the old turn as promptly as key release.
+                var unwindSeconds = Mathf.Min(remainingSeconds, Mathf.Abs(smoothedSteering) / SteeringCenterRate);
+                smoothedSteering = Mathf.MoveTowards(smoothedSteering, 0f, unwindSeconds * SteeringCenterRate);
+                remainingSeconds -= unwindSeconds;
+            }
             var rate = requestedInput.Steering == 0f ? SteeringCenterRate : SteeringPressRate;
             smoothedSteering = Mathf.MoveTowards(smoothedSteering, requestedInput.Steering,
-                Mathf.Max(0f, deltaTimeSeconds) * rate);
+                remainingSeconds * rate);
             if (requestedInput.Steering == 0f && Mathf.Abs(smoothedSteering) < 0.0001f)
                 smoothedSteering = 0f;
             controller.SetInput(new VehicleInputState(requestedInput.Throttle, requestedInput.Brake,

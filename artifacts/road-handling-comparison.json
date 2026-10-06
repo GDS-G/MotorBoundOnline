@@ -1,0 +1,904 @@
+{
+  "BeforeVersion": "0.2.3",
+  "AfterVersion": "0.2.4",
+  "BeforePassed": true,
+  "AfterPassed": true,
+  "AfterAssertions": 501,
+  "Scope": "Native Unity 2022.3.62f2; 360 Hz physics, 60 Hz keyboard, dry stock road 205. 21 matched routine maneuvers; 3 additional stock mild bends. Routine release observation: 1.5 seconds. Full final report also validates 24 touring assisted routine cases, for 70 total maneuvers.",
+  "Interpretation": "0.2.3 had no road torque control. 0.2.4 starts with visible switchable ROAD torque control ON; F2 disables it. Other changes: stable wheel substeps, 2/s digital press vs 3.5/s, quick 12/s release/countersteer unwind, .90 independent postpeak tail vs .78. This is the delivered combined behavior comparison, not isolated causal testing. Original 22 limit maneuvers explicitly disable assistance in both versions. Historical baseline Pass=true did not enforce routine recovery; final 501 assertions do.",
+  "MatchedManeuvers": [
+    {
+      "Name": "Stock road 205 / 30 km/h / 80 ms right key tap with throttle",
+      "InputSegments": [
+        {
+          "Seconds": 0.07999999821186066,
+          "Steering": 1
+        }
+      ],
+      "BeforeUnassisted": {
+        "SpeedAtTurnKilometersPerHour": 30.037282943725586,
+        "SpeedAfterTurnKilometersPerHour": 55.96346664428711,
+        "PeakAppliedSteeringDegrees": 9.333333969116211,
+        "PeakBodySideslipDegrees": 1.0261539220809937,
+        "PeakRearLongitudinalSlipRatio": 1.0752005577087402,
+        "SkidMarkSegmentCount": 31,
+        "InputCenteringAfterFinalReleaseSeconds": 0.03333333507180214,
+        "YawSettlingAfterFinalReleaseSeconds": 0.38333338499069214,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 0.184614360332489,
+        "FinalYawRateDegreesPerSecond": -0.0324118509888649,
+        "FinalBodySideslipDegrees": 0.000004125357008888386
+      },
+      "AfterRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 30.230432510375977,
+        "SpeedAfterTurnKilometersPerHour": 56.533939361572266,
+        "PeakAppliedSteeringDegrees": 5.333333492279053,
+        "PeakBodySideslipDegrees": 1.055151104927063,
+        "PeakRearLongitudinalSlipRatio": 0.04554031789302826,
+        "SkidMarkSegmentCount": 0,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": 0.0833333432674408,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 0.0033890283666551113,
+        "FinalYawRateDegreesPerSecond": 0.0030251413118094206,
+        "FinalBodySideslipDegrees": -0.00015071946836542338
+      }
+    },
+    {
+      "Name": "Stock road 205 / 30 km/h / 150 ms left key tap with throttle",
+      "InputSegments": [
+        {
+          "Seconds": 0.15000000596046448,
+          "Steering": -1
+        }
+      ],
+      "BeforeUnassisted": {
+        "SpeedAtTurnKilometersPerHour": 30.037282943725586,
+        "SpeedAfterTurnKilometersPerHour": 56.790462493896484,
+        "PeakAppliedSteeringDegrees": 16.79998779296875,
+        "PeakBodySideslipDegrees": 1.2121297121047974,
+        "PeakRearLongitudinalSlipRatio": 1.0867871046066284,
+        "SkidMarkSegmentCount": 41,
+        "InputCenteringAfterFinalReleaseSeconds": 0.05000000447034836,
+        "YawSettlingAfterFinalReleaseSeconds": 0.4333333373069763,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -0.49072790145874023,
+        "FinalYawRateDegreesPerSecond": 0.08010739088058472,
+        "FinalBodySideslipDegrees": -0.00039748993003740907
+      },
+      "AfterRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 30.230432510375977,
+        "SpeedAfterTurnKilometersPerHour": 56.689735412597656,
+        "PeakAppliedSteeringDegrees": 9.600006103515625,
+        "PeakBodySideslipDegrees": 1.8616549968719482,
+        "PeakRearLongitudinalSlipRatio": 0.04549634829163551,
+        "SkidMarkSegmentCount": 0,
+        "InputCenteringAfterFinalReleaseSeconds": 0.03333333507180214,
+        "YawSettlingAfterFinalReleaseSeconds": 0.13333335518836975,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 0.05058896169066429,
+        "FinalYawRateDegreesPerSecond": 0.04511379450559616,
+        "FinalBodySideslipDegrees": -0.0005942991119809449
+      }
+    },
+    {
+      "Name": "Stock road 205 / 30 km/h / gentle 0.12 right with throttle",
+      "InputSegments": [
+        {
+          "Seconds": 0.800000011920929,
+          "Steering": 0.11999999731779099
+        }
+      ],
+      "BeforeUnassisted": {
+        "SpeedAtTurnKilometersPerHour": 30.037282943725586,
+        "SpeedAfterTurnKilometersPerHour": 66.97274780273438,
+        "PeakAppliedSteeringDegrees": 3.8400001525878906,
+        "PeakBodySideslipDegrees": 1.1183809041976929,
+        "PeakRearLongitudinalSlipRatio": 0.9769940972328186,
+        "SkidMarkSegmentCount": 33,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": 0.20000001788139343,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -0.056761398911476135,
+        "FinalYawRateDegreesPerSecond": -0.033881619572639465,
+        "FinalBodySideslipDegrees": -0.00007086008554324508
+      },
+      "AfterRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 30.230432510375977,
+        "SpeedAfterTurnKilometersPerHour": 62.463645935058594,
+        "PeakAppliedSteeringDegrees": 3.8400001525878906,
+        "PeakBodySideslipDegrees": 1.0926591157913208,
+        "PeakRearLongitudinalSlipRatio": 0.04554031789302826,
+        "SkidMarkSegmentCount": 0,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": 0.11666667461395264,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -0.01534215733408928,
+        "FinalYawRateDegreesPerSecond": -0.045665085315704346,
+        "FinalBodySideslipDegrees": 0.00046330419718287885
+      }
+    },
+    {
+      "Name": "Stock road 205 / 30 km/h / gentle 0.20 left with throttle",
+      "InputSegments": [
+        {
+          "Seconds": 0.800000011920929,
+          "Steering": -0.20000000298023224
+        }
+      ],
+      "BeforeUnassisted": {
+        "SpeedAtTurnKilometersPerHour": 30.037282943725586,
+        "SpeedAfterTurnKilometersPerHour": 65.42597961425781,
+        "PeakAppliedSteeringDegrees": 6.399993896484375,
+        "PeakBodySideslipDegrees": 1.2920384407043457,
+        "PeakRearLongitudinalSlipRatio": 1.0769315958023071,
+        "SkidMarkSegmentCount": 37,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": 0.3333333730697632,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -0.0797705352306366,
+        "FinalYawRateDegreesPerSecond": -0.04564596712589264,
+        "FinalBodySideslipDegrees": 0.0004219142720103264
+      },
+      "AfterRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 30.230432510375977,
+        "SpeedAfterTurnKilometersPerHour": 61.17744827270508,
+        "PeakAppliedSteeringDegrees": 6.399993896484375,
+        "PeakBodySideslipDegrees": 1.6928305625915527,
+        "PeakRearLongitudinalSlipRatio": 0.04549634829163551,
+        "SkidMarkSegmentCount": 0,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": 0.1666666865348816,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -0.044288963079452515,
+        "FinalYawRateDegreesPerSecond": 0.11569440364837646,
+        "FinalBodySideslipDegrees": -0.00043495645513758063
+      }
+    },
+    {
+      "Name": "Stock road 205 / 30 km/h / 150 ms right key tap coasting",
+      "InputSegments": [
+        {
+          "Seconds": 0.15000000596046448,
+          "Steering": 1
+        }
+      ],
+      "BeforeUnassisted": {
+        "SpeedAtTurnKilometersPerHour": 30.037282943725586,
+        "SpeedAfterTurnKilometersPerHour": 20.114347457885742,
+        "PeakAppliedSteeringDegrees": 16.80000114440918,
+        "PeakBodySideslipDegrees": 2.9578096866607666,
+        "PeakRearLongitudinalSlipRatio": 0.2343156635761261,
+        "SkidMarkSegmentCount": 2,
+        "InputCenteringAfterFinalReleaseSeconds": 0.05000000447034836,
+        "YawSettlingAfterFinalReleaseSeconds": 0.15000000596046448,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -0.10545448213815689,
+        "FinalYawRateDegreesPerSecond": -0.015222095884382725,
+        "FinalBodySideslipDegrees": -0.0016057260800153017
+      },
+      "AfterRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 30.230432510375977,
+        "SpeedAfterTurnKilometersPerHour": 20.354413986206055,
+        "PeakAppliedSteeringDegrees": 9.600000381469727,
+        "PeakBodySideslipDegrees": 2.340287446975708,
+        "PeakRearLongitudinalSlipRatio": 0.01350289024412632,
+        "SkidMarkSegmentCount": 0,
+        "InputCenteringAfterFinalReleaseSeconds": 0.03333333507180214,
+        "YawSettlingAfterFinalReleaseSeconds": 0.11666667461395264,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -0.0023195145186036825,
+        "FinalYawRateDegreesPerSecond": -0.0017480173846706748,
+        "FinalBodySideslipDegrees": 0.01087532564997673
+      }
+    },
+    {
+      "Name": "Stock road 205 / 30 km/h / keyboard right-left lane change with throttle",
+      "InputSegments": [
+        {
+          "Seconds": 0.15000000596046448,
+          "Steering": 1
+        },
+        {
+          "Seconds": 0.20000000298023224,
+          "Steering": 0
+        },
+        {
+          "Seconds": 0.15000000596046448,
+          "Steering": -1
+        }
+      ],
+      "BeforeUnassisted": {
+        "SpeedAtTurnKilometersPerHour": 30.037282943725586,
+        "SpeedAfterTurnKilometersPerHour": 62.04966735839844,
+        "PeakAppliedSteeringDegrees": 16.80000114440918,
+        "PeakBodySideslipDegrees": 1.9620879888534546,
+        "PeakRearLongitudinalSlipRatio": 1.0879497528076172,
+        "SkidMarkSegmentCount": 48,
+        "InputCenteringAfterFinalReleaseSeconds": 0.05000000447034836,
+        "YawSettlingAfterFinalReleaseSeconds": 0.23333334922790527,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -0.19985516369342804,
+        "FinalYawRateDegreesPerSecond": -0.09483672678470612,
+        "FinalBodySideslipDegrees": 0.0006021888111717999
+      },
+      "AfterRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 30.230432510375977,
+        "SpeedAfterTurnKilometersPerHour": 60.777862548828125,
+        "PeakAppliedSteeringDegrees": 9.600006103515625,
+        "PeakBodySideslipDegrees": 1.8663586378097534,
+        "PeakRearLongitudinalSlipRatio": 0.04554031789302826,
+        "SkidMarkSegmentCount": 0,
+        "InputCenteringAfterFinalReleaseSeconds": 0.03333333507180214,
+        "YawSettlingAfterFinalReleaseSeconds": 0.15000000596046448,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -0.04297541826963425,
+        "FinalYawRateDegreesPerSecond": -0.045437291264534,
+        "FinalBodySideslipDegrees": 0.000436240661656484
+      }
+    },
+    {
+      "Name": "Stock road 205 / 30 km/h / gentle alternating slalom with throttle",
+      "InputSegments": [
+        {
+          "Seconds": 0.4000000059604645,
+          "Steering": 0.11999999731779099
+        },
+        {
+          "Seconds": 0.800000011920929,
+          "Steering": -0.11999999731779099
+        },
+        {
+          "Seconds": 0.4000000059604645,
+          "Steering": 0.11999999731779099
+        }
+      ],
+      "BeforeUnassisted": {
+        "SpeedAtTurnKilometersPerHour": 30.037282943725586,
+        "SpeedAfterTurnKilometersPerHour": 79.11192321777344,
+        "PeakAppliedSteeringDegrees": 3.8400001525878906,
+        "PeakBodySideslipDegrees": 1.4963501691818237,
+        "PeakRearLongitudinalSlipRatio": 0.9769940972328186,
+        "SkidMarkSegmentCount": 33,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": 0.6333333849906921,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 1.2855092287063599,
+        "FinalYawRateDegreesPerSecond": 0.16244076192378998,
+        "FinalBodySideslipDegrees": -0.013257550075650215
+      },
+      "AfterRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 30.230432510375977,
+        "SpeedAfterTurnKilometersPerHour": 68.83319854736328,
+        "PeakAppliedSteeringDegrees": 3.8400001525878906,
+        "PeakBodySideslipDegrees": 1.0926591157913208,
+        "PeakRearLongitudinalSlipRatio": 0.04554031789302826,
+        "SkidMarkSegmentCount": 0,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": 0.20000001788139343,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 0.09419919550418854,
+        "FinalYawRateDegreesPerSecond": -0.03446202352643013,
+        "FinalBodySideslipDegrees": -0.000054283649660646915
+      }
+    },
+    {
+      "Name": "Stock road 205 / 50 km/h / 80 ms right key tap with throttle",
+      "InputSegments": [
+        {
+          "Seconds": 0.07999999821186066,
+          "Steering": 1
+        }
+      ],
+      "BeforeUnassisted": {
+        "SpeedAtTurnKilometersPerHour": 50.03030014038086,
+        "SpeedAfterTurnKilometersPerHour": 74.91111755371094,
+        "PeakAppliedSteeringDegrees": 9.333333969116211,
+        "PeakBodySideslipDegrees": 0.566349446773529,
+        "PeakRearLongitudinalSlipRatio": 0.04362542927265167,
+        "SkidMarkSegmentCount": 1,
+        "InputCenteringAfterFinalReleaseSeconds": 0.03333333507180214,
+        "YawSettlingAfterFinalReleaseSeconds": 0.3500000238418579,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 0.32310616970062256,
+        "FinalYawRateDegreesPerSecond": -0.0031410823576152325,
+        "FinalBodySideslipDegrees": -0.0019961977377533913
+      },
+      "AfterRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 50.15896987915039,
+        "SpeedAfterTurnKilometersPerHour": 74.68756866455078,
+        "PeakAppliedSteeringDegrees": 5.333333492279053,
+        "PeakBodySideslipDegrees": 0.4914308488368988,
+        "PeakRearLongitudinalSlipRatio": 0.04534487798810005,
+        "SkidMarkSegmentCount": 0,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": 0.21666669845581055,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 0.34797731041908264,
+        "FinalYawRateDegreesPerSecond": 0.014441746287047863,
+        "FinalBodySideslipDegrees": -0.0009595176670700312
+      }
+    },
+    {
+      "Name": "Stock road 205 / 50 km/h / 150 ms left key tap with throttle",
+      "InputSegments": [
+        {
+          "Seconds": 0.15000000596046448,
+          "Steering": -1
+        }
+      ],
+      "BeforeUnassisted": {
+        "SpeedAtTurnKilometersPerHour": 50.03030014038086,
+        "SpeedAfterTurnKilometersPerHour": 75.67293548583984,
+        "PeakAppliedSteeringDegrees": 16.79998779296875,
+        "PeakBodySideslipDegrees": 1.0541843175888062,
+        "PeakRearLongitudinalSlipRatio": 0.06318923830986023,
+        "SkidMarkSegmentCount": 10,
+        "InputCenteringAfterFinalReleaseSeconds": 0.05000000447034836,
+        "YawSettlingAfterFinalReleaseSeconds": 0.5166667103767395,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -1.0543338060379028,
+        "FinalYawRateDegreesPerSecond": -0.023011550307273865,
+        "FinalBodySideslipDegrees": 0.005203928332775831
+      },
+      "AfterRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 50.15896987915039,
+        "SpeedAfterTurnKilometersPerHour": 74.26617431640625,
+        "PeakAppliedSteeringDegrees": 9.600006103515625,
+        "PeakBodySideslipDegrees": 0.5593986511230469,
+        "PeakRearLongitudinalSlipRatio": 0.045378439128398895,
+        "SkidMarkSegmentCount": 2,
+        "InputCenteringAfterFinalReleaseSeconds": 0.03333333507180214,
+        "YawSettlingAfterFinalReleaseSeconds": 0.3166666626930237,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -0.11564765870571136,
+        "FinalYawRateDegreesPerSecond": 0.08930638432502747,
+        "FinalBodySideslipDegrees": 0.0007688244222663343
+      }
+    },
+    {
+      "Name": "Stock road 205 / 50 km/h / gentle 0.12 right with throttle",
+      "InputSegments": [
+        {
+          "Seconds": 0.800000011920929,
+          "Steering": 0.11999999731779099
+        }
+      ],
+      "BeforeUnassisted": {
+        "SpeedAtTurnKilometersPerHour": 50.03030014038086,
+        "SpeedAfterTurnKilometersPerHour": 53.23092269897461,
+        "PeakAppliedSteeringDegrees": 3.8400001525878906,
+        "PeakBodySideslipDegrees": 83.88543701171875,
+        "PeakRearLongitudinalSlipRatio": 14.726600646972656,
+        "SkidMarkSegmentCount": 384,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": -1,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 67.7892837524414,
+        "FinalYawRateDegreesPerSecond": 112.33525085449219,
+        "FinalBodySideslipDegrees": -83.88543701171875
+      },
+      "AfterRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 50.15896987915039,
+        "SpeedAfterTurnKilometersPerHour": 77.62003326416016,
+        "PeakAppliedSteeringDegrees": 3.8400001525878906,
+        "PeakBodySideslipDegrees": 1.128995656967163,
+        "PeakRearLongitudinalSlipRatio": 0.04534487798810005,
+        "SkidMarkSegmentCount": 0,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": 0.3500000238418579,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 0.158878892660141,
+        "FinalYawRateDegreesPerSecond": 0.017735272645950317,
+        "FinalBodySideslipDegrees": -0.001943429117091
+      }
+    },
+    {
+      "Name": "Stock road 205 / 50 km/h / gentle 0.20 left with throttle",
+      "InputSegments": [
+        {
+          "Seconds": 0.800000011920929,
+          "Steering": -0.20000000298023224
+        }
+      ],
+      "BeforeUnassisted": {
+        "SpeedAtTurnKilometersPerHour": 50.03030014038086,
+        "SpeedAfterTurnKilometersPerHour": 40.448997497558594,
+        "PeakAppliedSteeringDegrees": 6.399993896484375,
+        "PeakBodySideslipDegrees": 89.57466888427734,
+        "PeakRearLongitudinalSlipRatio": 16.31949234008789,
+        "SkidMarkSegmentCount": 451,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": -1,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -88.11088562011719,
+        "FinalYawRateDegreesPerSecond": -159.6036834716797,
+        "FinalBodySideslipDegrees": 47.98492431640625
+      },
+      "AfterRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 50.15896987915039,
+        "SpeedAfterTurnKilometersPerHour": 73.29882049560547,
+        "PeakAppliedSteeringDegrees": 6.399993896484375,
+        "PeakBodySideslipDegrees": 2.8584654331207275,
+        "PeakRearLongitudinalSlipRatio": 0.045378439128398895,
+        "SkidMarkSegmentCount": 45,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": 0.4833333492279053,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 0.04828780144453049,
+        "FinalYawRateDegreesPerSecond": -0.059847891330718994,
+        "FinalBodySideslipDegrees": 0.0007051629363559186
+      }
+    },
+    {
+      "Name": "Stock road 205 / 50 km/h / 150 ms right key tap coasting",
+      "InputSegments": [
+        {
+          "Seconds": 0.15000000596046448,
+          "Steering": 1
+        }
+      ],
+      "BeforeUnassisted": {
+        "SpeedAtTurnKilometersPerHour": 50.03030014038086,
+        "SpeedAfterTurnKilometersPerHour": 43.51887893676758,
+        "PeakAppliedSteeringDegrees": 16.80000114440918,
+        "PeakBodySideslipDegrees": 0.8466460704803467,
+        "PeakRearLongitudinalSlipRatio": 0.0384196937084198,
+        "SkidMarkSegmentCount": 7,
+        "InputCenteringAfterFinalReleaseSeconds": 0.05000000447034836,
+        "YawSettlingAfterFinalReleaseSeconds": 0.23333334922790527,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -0.010482254438102245,
+        "FinalYawRateDegreesPerSecond": -0.012445187196135521,
+        "FinalBodySideslipDegrees": 0.0006699070218019187
+      },
+      "AfterRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 50.15896987915039,
+        "SpeedAfterTurnKilometersPerHour": 40.056949615478516,
+        "PeakAppliedSteeringDegrees": 9.600000381469727,
+        "PeakBodySideslipDegrees": 0.8450977802276611,
+        "PeakRearLongitudinalSlipRatio": 0.016191720962524414,
+        "SkidMarkSegmentCount": 0,
+        "InputCenteringAfterFinalReleaseSeconds": 0.03333333507180214,
+        "YawSettlingAfterFinalReleaseSeconds": 0.20000001788139343,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 0.0018889354541897774,
+        "FinalYawRateDegreesPerSecond": 0.0004125639679841697,
+        "FinalBodySideslipDegrees": 0.0004207604215480387
+      }
+    },
+    {
+      "Name": "Stock road 205 / 50 km/h / keyboard right-left lane change with throttle",
+      "InputSegments": [
+        {
+          "Seconds": 0.15000000596046448,
+          "Steering": 1
+        },
+        {
+          "Seconds": 0.20000000298023224,
+          "Steering": 0
+        },
+        {
+          "Seconds": 0.15000000596046448,
+          "Steering": -1
+        }
+      ],
+      "BeforeUnassisted": {
+        "SpeedAtTurnKilometersPerHour": 50.03030014038086,
+        "SpeedAfterTurnKilometersPerHour": 80.70716094970703,
+        "PeakAppliedSteeringDegrees": 16.80000114440918,
+        "PeakBodySideslipDegrees": 1.2123301029205322,
+        "PeakRearLongitudinalSlipRatio": 0.06322837620973587,
+        "SkidMarkSegmentCount": 19,
+        "InputCenteringAfterFinalReleaseSeconds": 0.05000000447034836,
+        "YawSettlingAfterFinalReleaseSeconds": 0.7666667103767395,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -2.0396313667297363,
+        "FinalYawRateDegreesPerSecond": -0.2752932906150818,
+        "FinalBodySideslipDegrees": 0.023562731221318245
+      },
+      "AfterRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 50.15896987915039,
+        "SpeedAfterTurnKilometersPerHour": 77.57955932617188,
+        "PeakAppliedSteeringDegrees": 9.600006103515625,
+        "PeakBodySideslipDegrees": 0.6461304426193237,
+        "PeakRearLongitudinalSlipRatio": 0.04534487798810005,
+        "SkidMarkSegmentCount": 3,
+        "InputCenteringAfterFinalReleaseSeconds": 0.03333333507180214,
+        "YawSettlingAfterFinalReleaseSeconds": 0.38333338499069214,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -0.5113314986228943,
+        "FinalYawRateDegreesPerSecond": -0.13182756304740906,
+        "FinalBodySideslipDegrees": 0.0037390603683888912
+      }
+    },
+    {
+      "Name": "Stock road 205 / 50 km/h / gentle alternating slalom with throttle",
+      "InputSegments": [
+        {
+          "Seconds": 0.4000000059604645,
+          "Steering": 0.11999999731779099
+        },
+        {
+          "Seconds": 0.800000011920929,
+          "Steering": -0.11999999731779099
+        },
+        {
+          "Seconds": 0.4000000059604645,
+          "Steering": 0.11999999731779099
+        }
+      ],
+      "BeforeUnassisted": {
+        "SpeedAtTurnKilometersPerHour": 50.03030014038086,
+        "SpeedAfterTurnKilometersPerHour": 50.390933990478516,
+        "PeakAppliedSteeringDegrees": 3.8400001525878906,
+        "PeakBodySideslipDegrees": 89.63826751708984,
+        "PeakRearLongitudinalSlipRatio": 16.479280471801758,
+        "SkidMarkSegmentCount": 472,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": -1,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -76.59782409667969,
+        "FinalYawRateDegreesPerSecond": -138.53933715820312,
+        "FinalBodySideslipDegrees": 58.7663688659668
+      },
+      "AfterRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 50.15896987915039,
+        "SpeedAfterTurnKilometersPerHour": 82.49237060546875,
+        "PeakAppliedSteeringDegrees": 3.8400001525878906,
+        "PeakBodySideslipDegrees": 1.7912760972976685,
+        "PeakRearLongitudinalSlipRatio": 0.04534487798810005,
+        "SkidMarkSegmentCount": 0,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": 0.5000000596046448,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 0.4145135283470154,
+        "FinalYawRateDegreesPerSecond": 0.22127380967140198,
+        "FinalBodySideslipDegrees": -0.011047275736927986
+      }
+    },
+    {
+      "Name": "Stock road 205 / 70 km/h / 80 ms right key tap with throttle",
+      "InputSegments": [
+        {
+          "Seconds": 0.07999999821186066,
+          "Steering": 1
+        }
+      ],
+      "BeforeUnassisted": {
+        "SpeedAtTurnKilometersPerHour": 70.04570007324219,
+        "SpeedAfterTurnKilometersPerHour": 92.7968521118164,
+        "PeakAppliedSteeringDegrees": 9.333333969116211,
+        "PeakBodySideslipDegrees": 0.8595664501190186,
+        "PeakRearLongitudinalSlipRatio": 0.04675282537937164,
+        "SkidMarkSegmentCount": 1,
+        "InputCenteringAfterFinalReleaseSeconds": 0.03333333507180214,
+        "YawSettlingAfterFinalReleaseSeconds": -1,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 3.335186243057251,
+        "FinalYawRateDegreesPerSecond": 0.8563826084136963,
+        "FinalBodySideslipDegrees": -0.12962041795253754
+      },
+      "AfterRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 70.26239013671875,
+        "SpeedAfterTurnKilometersPerHour": 92.05973052978516,
+        "PeakAppliedSteeringDegrees": 5.333333492279053,
+        "PeakBodySideslipDegrees": 0.4901892840862274,
+        "PeakRearLongitudinalSlipRatio": 0.043141841888427734,
+        "SkidMarkSegmentCount": 0,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": 0.7833333611488342,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 1.516873836517334,
+        "FinalYawRateDegreesPerSecond": 0.3058040738105774,
+        "FinalBodySideslipDegrees": -0.05321362242102623
+      }
+    },
+    {
+      "Name": "Stock road 205 / 70 km/h / 150 ms left key tap with throttle",
+      "InputSegments": [
+        {
+          "Seconds": 0.15000000596046448,
+          "Steering": -1
+        }
+      ],
+      "BeforeUnassisted": {
+        "SpeedAtTurnKilometersPerHour": 70.04570007324219,
+        "SpeedAfterTurnKilometersPerHour": 93.12495422363281,
+        "PeakAppliedSteeringDegrees": 16.79998779296875,
+        "PeakBodySideslipDegrees": 2.091261863708496,
+        "PeakRearLongitudinalSlipRatio": 0.07571811974048615,
+        "SkidMarkSegmentCount": 11,
+        "InputCenteringAfterFinalReleaseSeconds": 0.05000000447034836,
+        "YawSettlingAfterFinalReleaseSeconds": -1,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -7.809957504272461,
+        "FinalYawRateDegreesPerSecond": -1.8064539432525635,
+        "FinalBodySideslipDegrees": 0.27407413721084595
+      },
+      "AfterRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 70.26239013671875,
+        "SpeedAfterTurnKilometersPerHour": 91.22493743896484,
+        "PeakAppliedSteeringDegrees": 9.600006103515625,
+        "PeakBodySideslipDegrees": 1.255153775215149,
+        "PeakRearLongitudinalSlipRatio": 0.04311158135533333,
+        "SkidMarkSegmentCount": 3,
+        "InputCenteringAfterFinalReleaseSeconds": 0.03333333507180214,
+        "YawSettlingAfterFinalReleaseSeconds": 0.98333340883255,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -1.7585556507110596,
+        "FinalYawRateDegreesPerSecond": -0.46081915497779846,
+        "FinalBodySideslipDegrees": 0.06246548891067505
+      }
+    },
+    {
+      "Name": "Stock road 205 / 70 km/h / gentle 0.12 right with throttle",
+      "InputSegments": [
+        {
+          "Seconds": 0.800000011920929,
+          "Steering": 0.11999999731779099
+        }
+      ],
+      "BeforeUnassisted": {
+        "SpeedAtTurnKilometersPerHour": 70.04570007324219,
+        "SpeedAfterTurnKilometersPerHour": 61.72837829589844,
+        "PeakAppliedSteeringDegrees": 3.8400001525878906,
+        "PeakBodySideslipDegrees": 89.12808227539062,
+        "PeakRearLongitudinalSlipRatio": 14.473603248596191,
+        "SkidMarkSegmentCount": 445,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": -1,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 65.3233871459961,
+        "FinalYawRateDegreesPerSecond": 106.57781219482422,
+        "FinalBodySideslipDegrees": -89.12808227539062
+      },
+      "AfterRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 70.26239013671875,
+        "SpeedAfterTurnKilometersPerHour": 87.45472717285156,
+        "PeakAppliedSteeringDegrees": 3.8400001525878906,
+        "PeakBodySideslipDegrees": 4.538966655731201,
+        "PeakRearLongitudinalSlipRatio": 0.04309827461838722,
+        "SkidMarkSegmentCount": 63,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": 1.1166667938232422,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 5.846356391906738,
+        "FinalYawRateDegreesPerSecond": 0.5922399759292603,
+        "FinalBodySideslipDegrees": -0.07937929034233093
+      }
+    },
+    {
+      "Name": "Stock road 205 / 70 km/h / gentle 0.20 left with throttle",
+      "InputSegments": [
+        {
+          "Seconds": 0.800000011920929,
+          "Steering": -0.20000000298023224
+        }
+      ],
+      "BeforeUnassisted": {
+        "SpeedAtTurnKilometersPerHour": 70.04570007324219,
+        "SpeedAfterTurnKilometersPerHour": 57.984195709228516,
+        "PeakAppliedSteeringDegrees": 6.399993896484375,
+        "PeakBodySideslipDegrees": 89.6810302734375,
+        "PeakRearLongitudinalSlipRatio": 16.9650821685791,
+        "SkidMarkSegmentCount": 475,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": -1,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -75.06201171875,
+        "FinalYawRateDegreesPerSecond": -134.86703491210938,
+        "FinalBodySideslipDegrees": 59.513755798339844
+      },
+      "AfterRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 70.26239013671875,
+        "SpeedAfterTurnKilometersPerHour": 68.65985870361328,
+        "PeakAppliedSteeringDegrees": 6.399993896484375,
+        "PeakBodySideslipDegrees": 9.0741548538208,
+        "PeakRearLongitudinalSlipRatio": 0.04311158135533333,
+        "SkidMarkSegmentCount": 209,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": -1,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -28.955121994018555,
+        "FinalYawRateDegreesPerSecond": -2.7270655632019043,
+        "FinalBodySideslipDegrees": 0.3181215226650238
+      }
+    },
+    {
+      "Name": "Stock road 205 / 70 km/h / 150 ms right key tap coasting",
+      "InputSegments": [
+        {
+          "Seconds": 0.15000000596046448,
+          "Steering": 1
+        }
+      ],
+      "BeforeUnassisted": {
+        "SpeedAtTurnKilometersPerHour": 70.04570007324219,
+        "SpeedAfterTurnKilometersPerHour": 63.142215728759766,
+        "PeakAppliedSteeringDegrees": 16.80000114440918,
+        "PeakBodySideslipDegrees": 1.5667098760604858,
+        "PeakRearLongitudinalSlipRatio": 0.04060271754860878,
+        "SkidMarkSegmentCount": 9,
+        "InputCenteringAfterFinalReleaseSeconds": 0.05000000447034836,
+        "YawSettlingAfterFinalReleaseSeconds": 0.38333338499069214,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 0.02409697324037552,
+        "FinalYawRateDegreesPerSecond": -0.005807159468531609,
+        "FinalBodySideslipDegrees": 0.0006142323836684227
+      },
+      "AfterRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 70.26239013671875,
+        "SpeedAfterTurnKilometersPerHour": 63.621131896972656,
+        "PeakAppliedSteeringDegrees": 9.600000381469727,
+        "PeakBodySideslipDegrees": 1.1622111797332764,
+        "PeakRearLongitudinalSlipRatio": 0.010232038795948029,
+        "SkidMarkSegmentCount": 2,
+        "InputCenteringAfterFinalReleaseSeconds": 0.03333333507180214,
+        "YawSettlingAfterFinalReleaseSeconds": 0.3333333730697632,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 0.05144136771559715,
+        "FinalYawRateDegreesPerSecond": -0.017704978585243225,
+        "FinalBodySideslipDegrees": -0.00004011771670775488
+      }
+    },
+    {
+      "Name": "Stock road 205 / 70 km/h / keyboard right-left lane change with throttle",
+      "InputSegments": [
+        {
+          "Seconds": 0.15000000596046448,
+          "Steering": 1
+        },
+        {
+          "Seconds": 0.20000000298023224,
+          "Steering": 0
+        },
+        {
+          "Seconds": 0.15000000596046448,
+          "Steering": -1
+        }
+      ],
+      "BeforeUnassisted": {
+        "SpeedAtTurnKilometersPerHour": 70.04570007324219,
+        "SpeedAfterTurnKilometersPerHour": 96.53387451171875,
+        "PeakAppliedSteeringDegrees": 16.80000114440918,
+        "PeakBodySideslipDegrees": 2.2715084552764893,
+        "PeakRearLongitudinalSlipRatio": 0.07581883668899536,
+        "SkidMarkSegmentCount": 19,
+        "InputCenteringAfterFinalReleaseSeconds": 0.05000000447034836,
+        "YawSettlingAfterFinalReleaseSeconds": -1,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -7.679637908935547,
+        "FinalYawRateDegreesPerSecond": -1.5618563890457153,
+        "FinalBodySideslipDegrees": 0.23419404029846191
+      },
+      "AfterRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 70.26239013671875,
+        "SpeedAfterTurnKilometersPerHour": 92.94628143310547,
+        "PeakAppliedSteeringDegrees": 9.600006103515625,
+        "PeakBodySideslipDegrees": 1.2679648399353027,
+        "PeakRearLongitudinalSlipRatio": 0.044234395027160645,
+        "SkidMarkSegmentCount": 5,
+        "InputCenteringAfterFinalReleaseSeconds": 0.03333333507180214,
+        "YawSettlingAfterFinalReleaseSeconds": 1.133333444595337,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": -2.5568935871124268,
+        "FinalYawRateDegreesPerSecond": -0.49163055419921875,
+        "FinalBodySideslipDegrees": 0.0754484012722969
+      }
+    },
+    {
+      "Name": "Stock road 205 / 70 km/h / gentle alternating slalom with throttle",
+      "InputSegments": [
+        {
+          "Seconds": 0.4000000059604645,
+          "Steering": 0.11999999731779099
+        },
+        {
+          "Seconds": 0.800000011920929,
+          "Steering": -0.11999999731779099
+        },
+        {
+          "Seconds": 0.4000000059604645,
+          "Steering": 0.11999999731779099
+        }
+      ],
+      "BeforeUnassisted": {
+        "SpeedAtTurnKilometersPerHour": 70.04570007324219,
+        "SpeedAfterTurnKilometersPerHour": 102.75402069091797,
+        "PeakAppliedSteeringDegrees": 3.8400001525878906,
+        "PeakBodySideslipDegrees": 6.652791500091553,
+        "PeakRearLongitudinalSlipRatio": 0.39727941155433655,
+        "SkidMarkSegmentCount": 60,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": -1,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 6.081940650939941,
+        "FinalYawRateDegreesPerSecond": 1.4892266988754272,
+        "FinalBodySideslipDegrees": -0.22896051406860352
+      },
+      "AfterRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 70.26239013671875,
+        "SpeedAfterTurnKilometersPerHour": 94.43397521972656,
+        "PeakAppliedSteeringDegrees": 3.8400001525878906,
+        "PeakBodySideslipDegrees": 5.272282123565674,
+        "PeakRearLongitudinalSlipRatio": 0.04485471174120903,
+        "SkidMarkSegmentCount": 54,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": 1.183333396911621,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 2.8011271953582764,
+        "FinalYawRateDegreesPerSecond": 0.6049420237541199,
+        "FinalBodySideslipDegrees": -0.08010628074407578
+      }
+    }
+  ],
+  "AdditionalMildBends": [
+    {
+      "Name": "Stock road 205 / 30 km/h / mild 0.06 right with throttle",
+      "InputSegments": [
+        {
+          "Seconds": 0.800000011920929,
+          "Steering": 0.05999999865889549
+        }
+      ],
+      "FirstCandidateWithoutRoadControl": {
+        "SpeedAtTurnKilometersPerHour": 30.029205322265625,
+        "SpeedAfterTurnKilometersPerHour": 67.0208969116211,
+        "PeakAppliedSteeringDegrees": 1.9199999570846558,
+        "PeakBodySideslipDegrees": 0.6000054478645325,
+        "PeakRearLongitudinalSlipRatio": 0.7881914973258972,
+        "SkidMarkSegmentCount": 23,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": 0.1666666865348816,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 0.049550190567970276,
+        "FinalYawRateDegreesPerSecond": -0.059725143015384674,
+        "FinalBodySideslipDegrees": -0.0002484848373569548
+      },
+      "FinalRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 30.230432510375977,
+        "SpeedAfterTurnKilometersPerHour": 65.32694244384766,
+        "PeakAppliedSteeringDegrees": 1.9199999570846558,
+        "PeakBodySideslipDegrees": 0.5658271908760071,
+        "PeakRearLongitudinalSlipRatio": 0.04554031789302826,
+        "SkidMarkSegmentCount": 0,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": 0.13333335518836975,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 0.15896019339561462,
+        "FinalYawRateDegreesPerSecond": -0.08634582161903381,
+        "FinalBodySideslipDegrees": 0.00044905435061082244
+      },
+      "Note": "The first candidate already had stable wheel integration,.90tail,and2/s steering but no Road control. These3cases have no0.2.3 baseline."
+    },
+    {
+      "Name": "Stock road 205 / 50 km/h / mild 0.06 right with throttle",
+      "InputSegments": [
+        {
+          "Seconds": 0.800000011920929,
+          "Steering": 0.05999999865889549
+        }
+      ],
+      "FirstCandidateWithoutRoadControl": {
+        "SpeedAtTurnKilometersPerHour": 50.064083099365234,
+        "SpeedAfterTurnKilometersPerHour": 85.70703125,
+        "PeakAppliedSteeringDegrees": 1.9199999570846558,
+        "PeakBodySideslipDegrees": 1.3610774278640747,
+        "PeakRearLongitudinalSlipRatio": 0.06469020247459412,
+        "SkidMarkSegmentCount": 0,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": 0.9000000357627869,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 2.393801212310791,
+        "FinalYawRateDegreesPerSecond": 0.3400556743144989,
+        "FinalBodySideslipDegrees": -0.05102954059839249
+      },
+      "FinalRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 50.15896987915039,
+        "SpeedAfterTurnKilometersPerHour": 80.18334197998047,
+        "PeakAppliedSteeringDegrees": 1.9199999570846558,
+        "PeakBodySideslipDegrees": 0.5059918761253357,
+        "PeakRearLongitudinalSlipRatio": 0.045318953692913055,
+        "SkidMarkSegmentCount": 0,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": 0.3166666626930237,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 0.47369641065597534,
+        "FinalYawRateDegreesPerSecond": -0.0933641865849495,
+        "FinalBodySideslipDegrees": -0.00395452044904232
+      },
+      "Note": "The first candidate already had stable wheel integration,.90tail,and2/s steering but no Road control. These3cases have no0.2.3 baseline."
+    },
+    {
+      "Name": "Stock road 205 / 70 km/h / mild 0.06 right with throttle",
+      "InputSegments": [
+        {
+          "Seconds": 0.800000011920929,
+          "Steering": 0.05999999865889549
+        }
+      ],
+      "FirstCandidateWithoutRoadControl": {
+        "SpeedAtTurnKilometersPerHour": 70.07947540283203,
+        "SpeedAfterTurnKilometersPerHour": 73.59359741210938,
+        "PeakAppliedSteeringDegrees": 1.9199999570846558,
+        "PeakBodySideslipDegrees": 46.96513748168945,
+        "PeakRearLongitudinalSlipRatio": 2.886749267578125,
+        "SkidMarkSegmentCount": 354,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": -1,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 47.356754302978516,
+        "FinalYawRateDegreesPerSecond": 59.8831787109375,
+        "FinalBodySideslipDegrees": -46.96513748168945
+      },
+      "FinalRoadControlOn": {
+        "SpeedAtTurnKilometersPerHour": 70.26239013671875,
+        "SpeedAfterTurnKilometersPerHour": 93.83942413330078,
+        "PeakAppliedSteeringDegrees": 1.9199999570846558,
+        "PeakBodySideslipDegrees": 1.675493836402893,
+        "PeakRearLongitudinalSlipRatio": 0.04213225096464157,
+        "SkidMarkSegmentCount": 0,
+        "InputCenteringAfterFinalReleaseSeconds": 0.01666666753590107,
+        "YawSettlingAfterFinalReleaseSeconds": 1.0333333015441895,
+        "YawRateAfterFinalRelease500MillisecondsDegreesPerSecond": 1.5653072595596313,
+        "FinalYawRateDegreesPerSecond": 0.340379923582077,
+        "FinalBodySideslipDegrees": -0.0685838982462883
+      },
+      "Note": "The first candidate already had stable wheel integration,.90tail,and2/s steering but no Road control. These3cases have no0.2.3 baseline."
+    }
+  ]
+}

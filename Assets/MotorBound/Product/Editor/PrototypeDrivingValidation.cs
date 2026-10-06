@@ -235,7 +235,8 @@ namespace MotorBound.Editor
             AdvanceKeyboard(driver, controller, body, accelerationSeconds, new VehicleInputState(0.8f, 0f, 0f, 0f), result);
             result.SpeedAfterAccelerationMetersPerSecond = body.velocity.magnitude;
             result.ForwardDistanceMeters = body.position.z - startPosition.z;
-            AdvanceKeyboard(driver, controller, body, 0.35f, new VehicleInputState(0.2f, 0f, direction, 0f), result);
+            // Reach full lock with the progressive half-second keyboard ramp, then release.
+            AdvanceKeyboard(driver, controller, body, 0.55f, new VehicleInputState(0.2f, 0f, direction, 0f), result);
             result.PeakSteeringInput = Mathf.Abs(controller.Telemetry.Input.Steering);
             result.SpeedAtSteeringReleaseMetersPerSecond = body.velocity.magnitude;
             result.YawRateAtSteeringReleaseDegreesPerSecond = YawRateDegreesPerSecond(body);

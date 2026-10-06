@@ -32,7 +32,7 @@ namespace MotorBound.Product
             GUILayout.BeginArea(new Rect(16f, 16f, Mathf.Min(470f, Screen.width - 32f), Mathf.Max(180f, Screen.height - 32f)), GUI.skin.box);
             scroll = GUILayout.BeginScrollView(scroll);
             GUILayout.Label("MOTORBOUND / WORKSHOP", heading);
-            GUILayout.Label("Kiyora Aven Club • local test garage", text);
+            GUILayout.Label("Kiyora Aven Club • local test garage • " + Application.version, text);
             GUILayout.Space(8f);
             var config = session.Configuration;
             GUILayout.Label("Installed: " + config.WheelPackageName, text);
