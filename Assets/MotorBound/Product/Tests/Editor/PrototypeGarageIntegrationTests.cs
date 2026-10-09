@@ -191,6 +191,97 @@ namespace MotorBound.Product.Tests
         }
 
         [Test]
+        public void ManualGearControls_AreGarageGuardedAndPersistModeAcrossReset()
+        {
+            var vehicle = CreateVehicle();
+            var controller = vehicle.GetComponent<RaycastVehicleController>();
+            var definition = ReferenceVehicleCatalog.CreateKiyoraAvenClubPrototype();
+            controller.Configure(definition);
+            var driver = vehicle.GetComponent<PrototypeInputDriver>();
+            driver.DrivingEnabled = false;
+            Assert.That(driver.ShiftUp() || driver.ShiftDown() || driver.ToggleReverse() || driver.ToggleTransmissionMode(), Is.False);
+            Assert.That(controller.SelectedGear, Is.EqualTo(1));
+            Assert.That(controller.TransmissionMode, Is.EqualTo(DriveTransmissionMode.Automatic));
+            driver.DrivingEnabled = true;
+            Assert.That(driver.ShiftUp(), Is.True);
+            Assert.That(controller.SelectedGear, Is.EqualTo(2));
+            Assert.That(controller.TransmissionMode, Is.EqualTo(DriveTransmissionMode.Manual));
+            controller.ResetMotion();
+            Assert.That(controller.SelectedGear, Is.EqualTo(1));
+            Assert.That(controller.TransmissionMode, Is.EqualTo(DriveTransmissionMode.Manual));
+            controller.Configure(definition);
+            Assert.That(controller.TransmissionMode, Is.EqualTo(DriveTransmissionMode.Manual));
+            Assert.That(driver.ToggleTransmissionMode(), Is.True);
+            Assert.That(controller.TransmissionMode, Is.EqualTo(DriveTransmissionMode.Automatic));
+        }
+
+        [Test]
+        public void ReverseRequestAtSpeed_DoesNotMutateGearOrMode()
+        {
+            var vehicle = CreateVehicle();
+            var controller = vehicle.GetComponent<RaycastVehicleController>();
+            controller.Configure(ReferenceVehicleCatalog.CreateKiyoraAvenClubPrototype());
+            vehicle.GetComponent<Rigidbody>().velocity = new Vector3(10f, 0f, 0f);
+            Assert.That(vehicle.GetComponent<PrototypeInputDriver>().ToggleReverse(), Is.False);
+            Assert.That(controller.SelectedGear, Is.EqualTo(1));
+            Assert.That(controller.TransmissionMode, Is.EqualTo(DriveTransmissionMode.Automatic));
+            Assert.That(controller.GearSelectionMessage, Does.Contain("Stop"));
+        }
+
+        [TestCase(DriveLayout.FrontWheelDrive)]
+        [TestCase(DriveLayout.RearWheelDrive)]
+        [TestCase(DriveLayout.AllWheelDrive)]
+        public void ReversePropulsionUsesNegativeTorqueAndNeutralDeliversNoNetDrive(DriveLayout layout)
+        {
+            var vehicle = CreateVehicle();
+            var controller = vehicle.GetComponent<RaycastVehicleController>();
+            var definition = ReferenceVehicleCatalog.CreateKiyoraAvenClubPrototype();
+            definition.DriveLayout = layout;
+            controller.Configure(definition);
+            Assert.That(controller.TryToggleReverse(), Is.True);
+            controller.SetInput(new VehicleInputState(1f, 0f, 0f, 0f));
+            controller.SimulateStep(1f / 360f);
+            var telemetry = controller.Telemetry;
+            var expected = definition.Engine.EvaluateFullLoadTorqueNewtonMeters(telemetry.EngineSpeedRpm)
+                * definition.Transmission.ReverseGearRatio * definition.Transmission.FinalDriveRatio * definition.Transmission.Efficiency;
+            Assert.That(telemetry.Wheels.Sum(wheel => wheel.DriveTorqueNewtonMeters), Is.EqualTo(expected).Within(0.001d));
+            Assert.That(telemetry.TractionControlActive, Is.False);
+            Assert.That(controller.TryShiftGear(1), Is.True);
+            Assert.That(controller.SelectedGear, Is.EqualTo(0));
+            controller.SimulateStep(1f / 360f);
+            Assert.That(controller.Telemetry.Wheels.Sum(wheel => wheel.DriveTorqueNewtonMeters), Is.EqualTo(0f).Within(0.001f));
+            Assert.That(controller.Telemetry.EngineRevLimiterActive, Is.False);
+        }
+
+        [Test]
+        public void ManualFirstGear_CutsPropulsionAtRedlineInsteadOfApplyingInfiniteTorque()
+        {
+            var vehicle = CreateVehicle();
+            var controller = vehicle.GetComponent<RaycastVehicleController>();
+            controller.Configure(ReferenceVehicleCatalog.CreateKiyoraAvenClubPrototype());
+            Assert.That(controller.ToggleTransmissionMode(), Is.True);
+            controller.SetInput(new VehicleInputState(1f, 0f, 0f, 0f));
+            for (var index = 0; index < 180; index++) controller.SimulateStep(1f / 360f);
+            Assert.That(controller.SelectedGear, Is.EqualTo(1));
+            Assert.That(controller.EngineRevLimiterActive, Is.True);
+            Assert.That(controller.Telemetry.Wheels.Sum(wheel => wheel.DriveTorqueNewtonMeters), Is.EqualTo(0f).Within(0.001f));
+            Assert.That(controller.TryShiftGear(1), Is.True);
+            controller.SimulateStep(1f / 360f);
+            Assert.That(controller.EngineRevLimiterActive, Is.False);
+            Assert.That(controller.TryShiftGear(-1), Is.False);
+            Assert.That(controller.SelectedGear, Is.EqualTo(2));
+            Assert.That(controller.GearSelectionMessage, Does.Contain("redline"));
+        }
+
+        [TestCase(-1, "Gear R")]
+        [TestCase(0, "Gear N")]
+        [TestCase(6, "Gear 6")]
+        public void HudGearLabels_AreExplicit(int gear, string expected)
+        {
+            Assert.That(PrototypeTelemetryHud.GearLabel(gear), Is.EqualTo(expected));
+        }
+
+        [Test]
         public void SaveLoad_RetainsAssemblyIdentityRevisionAndCompiledConfiguration()
         {
             var state = CreateTouringState();

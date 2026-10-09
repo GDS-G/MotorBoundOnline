@@ -90,7 +90,7 @@ namespace MotorBound.Product
             controller.ResetMotion();
             controller.SimulationPaused = false;
             inputDriver.DrivingEnabled = true;
-            Message = "Test drive: W/S throttle and brake, A/D steer. Return to the marked bay, stop, then press G.";
+            Message = "Test drive: W/S throttle/brake, A/D steer, Q/E shift, M auto/manual, R stopped reverse. Return to the marked bay, stop, then press G.";
         }
 
         public void TryEnterGarage()

@@ -127,6 +127,7 @@ namespace MotorBound.Editor
                 WheelPackageKey = configuration.WheelPackageKey,
                 AssistMode = mode.ToString(),
                 InputPolicy = policy.ToString(),
+                LowSpeedVirtualDriverPowerFeedback = policy == InputPolicy.VirtualDriver && speedKmh == 50f,
                 RearDifferentialType = configuration.Vehicle.RearDifferential.Type.ToString(),
                 CommandsIdenticalAcrossAssistModes = policy == InputPolicy.IdenticalOpenLoop,
                 RequestedSpeedKilometersPerHour = speedKmh,
@@ -272,6 +273,15 @@ namespace MotorBound.Editor
             var holdSpeed = Mathf.Max(result.EntrySpeedKilometersPerHour, result.SpeedAtPhysicalBreakawayKilometersPerHour);
             var throttle = Mathf.Clamp(0.7f + (15f - Mathf.Abs(beta)) * 0.015f
                                       + (holdSpeed / 3.6f - speed) * 0.05f, 0.35f, 1f);
+            if (result.LowSpeedVirtualDriverPowerFeedback)
+            {
+                // Corrected suspension damping leaves this low-speed operating point at only
+                // 5-6 degrees of sideslip if the driver feathers power too early. Pursue the
+                // existing 15-degree target through actual rear-wheel torque, then feather as
+                // sideslip grows. Steering/yaw feedback and physical acceptance stay unchanged.
+                throttle = Mathf.Clamp(0.8f + (15f - Mathf.Abs(beta)) * 0.03f
+                                       + (holdSpeed / 3.6f - speed) * 0.03f, 0.35f, 1f);
+            }
             if (policy == InputPolicy.KeyboardDutyCycle)
             {
                 steering = DigitalSteeringRequest(driver, steering);
@@ -458,6 +468,7 @@ namespace MotorBound.Editor
             public string WheelPackageKey;
             public string AssistMode;
             public string InputPolicy;
+            public bool LowSpeedVirtualDriverPowerFeedback;
             public string RearDifferentialType;
             public bool CommandsIdenticalAcrossAssistModes;
             public float RequestedSpeedKilometersPerHour;

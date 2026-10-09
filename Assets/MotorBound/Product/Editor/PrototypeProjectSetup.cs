@@ -11,7 +11,7 @@ namespace MotorBound.Editor
     {
         private const string SceneDirectory = "Assets/MotorBound/Product/Scenes";
         private const string ScenePath = SceneDirectory + "/VehicleDynamicsPrototype.unity";
-        private const string PrototypeVersion = "0.2.5";
+        private const string PrototypeVersion = "0.2.6";
 
         [MenuItem("MotorBound/Configure Prototype Project")]
         public static void ConfigurePrototypeProject()

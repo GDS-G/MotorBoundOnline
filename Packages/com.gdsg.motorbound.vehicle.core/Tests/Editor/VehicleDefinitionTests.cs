@@ -31,6 +31,29 @@ namespace MotorBound.Vehicle.Core.Tests
             Assert.That(engine.EvaluateFullLoadTorqueNewtonMeters(4000d), Is.EqualTo(200d));
         }
 
+        [TestCase(0d)]
+        [TestCase(1d)]
+        [TestCase(double.NaN)]
+        [TestCase(double.PositiveInfinity)]
+        [TestCase(double.NegativeInfinity)]
+        public void Validation_RejectsInvalidReverseRatio(double ratio)
+        {
+            var definition = ReferenceVehicleCatalog.CreateKiyoraAvenClubPrototype();
+            definition.Transmission.ReverseGearRatio = ratio;
+            Assert.That(definition.Validate().Any(issue => issue.Path == "transmission.reverseGearRatio"), Is.True);
+        }
+
+        [TestCase(0d)]
+        [TestCase(-1d)]
+        [TestCase(double.NaN)]
+        [TestCase(double.PositiveInfinity)]
+        public void Validation_RejectsInvalidForwardRatio(double ratio)
+        {
+            var definition = ReferenceVehicleCatalog.CreateKiyoraAvenClubPrototype();
+            definition.Transmission.ForwardGearRatios[1] = ratio;
+            Assert.That(definition.Validate().Any(issue => issue.Path == "transmission.forwardGearRatios[1]"), Is.True);
+        }
+
         [Test]
         public void Validation_ReportsNonIncreasingTorqueSamples()
         {

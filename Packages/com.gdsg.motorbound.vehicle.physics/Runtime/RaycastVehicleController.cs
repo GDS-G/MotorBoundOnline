@@ -18,13 +18,14 @@ namespace MotorBound.Vehicle.Physics
         private readonly TireForceInput[] tractionContacts = new TireForceInput[WheelCount];
         private readonly PreparedWheelStep[] preparedWheels = new PreparedWheelStep[WheelCount];
         private readonly VehicleAssistController assistController = new VehicleAssistController();
+        private readonly TransmissionGearSelector gearSelector = new TransmissionGearSelector();
         private RaycastHit[] contactHits = new RaycastHit[8];
         private Rigidbody body;
         private VehicleDefinition definition;
         private VehicleInputState input;
         private Vector3 previousVelocity;
-        private int forwardGear = 1;
         private float engineSpeedRpm;
+        private bool engineRevLimiterActive;
         private bool configured;
         private Mesh tireMesh;
         private Material tireMaterial;
@@ -33,6 +34,10 @@ namespace MotorBound.Vehicle.Physics
         public VehicleDefinition Definition => definition;
         public bool SimulationPaused { get; set; }
         public DriverAssistMode AssistMode { get; set; } = DriverAssistMode.Sport;
+        public int SelectedGear => gearSelector.SelectedGear;
+        public DriveTransmissionMode TransmissionMode => gearSelector.Mode;
+        public string GearSelectionMessage { get; private set; } = "Automatic forward gears; Q/E manual shift, R stopped direction selector.";
+        public bool EngineRevLimiterActive => engineRevLimiterActive;
         // Compatibility for existing explicit Road/OFF validation callers.
         public bool RoadTractionControlEnabled
         {
@@ -96,8 +101,12 @@ namespace MotorBound.Vehicle.Physics
             previousVelocity = Vector3.zero;
             input = default(VehicleInputState);
             assistController.Reset();
-            forwardGear = 1;
+            var retainedTransmissionMode = gearSelector.Mode;
+            gearSelector.Reset();
+            gearSelector.SetMode(retainedTransmissionMode);
+            GearSelectionMessage = "First gear selected after motion reset.";
             engineSpeedRpm = definition != null ? (float)definition.Engine.IdleSpeedRpm : 0f;
+            engineRevLimiterActive = false;
             foreach (var wheel in wheels)
             {
                 if (wheel == null)
@@ -113,8 +122,10 @@ namespace MotorBound.Vehicle.Physics
             Telemetry = new VehicleTelemetry
             {
                 VehicleName = definition != null ? definition.DisplayName : string.Empty,
-                ForwardGear = forwardGear,
+                ForwardGear = SelectedGear,
+                TransmissionMode = TransmissionMode,
                 EngineSpeedRpm = engineSpeedRpm,
+                EngineRevLimiterActive = engineRevLimiterActive,
                 SimulationFrequencyHertz = CriticalVehicleSimulationFrequencyHertz,
                 RoadTractionControlEnabled = RoadTractionControlEnabled,
                 AssistMode = AssistMode,
@@ -127,6 +138,45 @@ namespace MotorBound.Vehicle.Physics
         public void SetInput(VehicleInputState nextInput)
         {
             input = nextInput;
+        }
+
+        public bool TryShiftGear(int direction)
+        {
+            if (!configured || SimulationPaused) return false;
+            var count = definition.Transmission.ForwardGearRatios.Length;
+            var target = direction == 1 ? Mathf.Min(SelectedGear + 1, count)
+                : direction == -1 ? Mathf.Max(SelectedGear - 1, -1) : SelectedGear;
+            if (target > 0 && target < SelectedGear)
+            {
+                var predictedRpm = AverageDrivenWheelAngularSpeed()
+                    * definition.Transmission.ForwardGearRatios[target - 1]
+                    * definition.Transmission.FinalDriveRatio * UnitConversion.RadiansPerSecondToRevolutionsPerMinute;
+                if (predictedRpm > definition.Engine.RedlineSpeedRpm)
+                {
+                    GearSelectionMessage = "Downshift rejected: selected gear would exceed engine redline.";
+                    return false;
+                }
+            }
+            return ApplyGearSelection(gearSelector.RequestShift(direction, count, body.velocity.magnitude));
+        }
+
+        public bool TryToggleReverse()
+        {
+            if (!configured || SimulationPaused) return false;
+            return ApplyGearSelection(gearSelector.RequestReverseToggle(
+                definition.Transmission.ForwardGearRatios.Length, body.velocity.magnitude));
+        }
+
+        public bool ToggleTransmissionMode()
+        {
+            if (!configured || SimulationPaused) return false;
+            return ApplyGearSelection(gearSelector.ToggleMode());
+        }
+
+        private bool ApplyGearSelection(TransmissionGearSelectionResult result)
+        {
+            GearSelectionMessage = result.Message;
+            return result.Accepted;
         }
 
         public void Recover()
@@ -157,18 +207,26 @@ namespace MotorBound.Vehicle.Physics
 
             UpdatePowertrain();
             var drivenWheelCount = GetDrivenWheelCount();
-            var gearRatio = (float)definition.Transmission.ForwardGearRatios[forwardGear - 1];
-            var engineTorque = (float)definition.Engine.EvaluateFullLoadTorqueNewtonMeters(engineSpeedRpm) * input.Throttle;
+            var gearRatio = (float)gearSelector.GetSelectedGearRatio(definition.Transmission);
+            var engineTorque = engineRevLimiterActive ? 0f
+                : (float)definition.Engine.EvaluateFullLoadTorqueNewtonMeters(engineSpeedRpm) * input.Throttle;
             var engineBraking = body.velocity.sqrMagnitude > 0.25f
                 ? (1f - input.Throttle) * (float)definition.Engine.EngineBrakingTorqueNewtonMeters
                 : 0f;
-            var driveTorquePerWheel = ((engineTorque - engineBraking) * gearRatio * (float)definition.Transmission.FinalDriveRatio * (float)definition.Transmission.Efficiency) / drivenWheelCount;
+            var carrierSpeed = AverageDrivenWheelAngularSpeed(true);
+            var propulsionPerWheel = (float)(PowertrainTorqueModel.CalculateAxleTorque(engineTorque, 0d,
+                gearRatio, definition.Transmission.FinalDriveRatio, definition.Transmission.Efficiency, carrierSpeed) / drivenWheelCount);
             var localVelocity = transform.InverseTransformDirection(body.velocity);
             var bodySideslip = localVelocity.x * localVelocity.x + localVelocity.z * localVelocity.z > 0.01f
                 ? Mathf.Atan2(localVelocity.x, localVelocity.z) * Mathf.Rad2Deg : 0f;
             var assist = assistController.Evaluate(AssistMode, CreateAssistObservation(bodySideslip), fixedDeltaTime);
-            var tractionControl = EvaluateRoadTractionControl(driveTorquePerWheel, assist.UseRoadTractionControl);
-            driveTorquePerWheel = (float)tractionControl.DriveTorquePerWheelNewtonMeters;
+            // Limit propulsion only. Passive engine drag must remain dissipative and
+            // untouched even if a spin back-drives the shaft opposite the selected gear.
+            var tractionControl = EvaluateRoadTractionControl(propulsionPerWheel,
+                assist.UseRoadTractionControl && SelectedGear > 0);
+            var driveTorquePerWheel = (float)(PowertrainTorqueModel.CalculateAxleTorque(
+                engineTorque * tractionControl.DeliveredDriveTorqueScale, engineBraking,
+                gearRatio, definition.Transmission.FinalDriveRatio, definition.Transmission.Efficiency, carrierSpeed) / drivenWheelCount);
 
             var telemetryWheels = Telemetry.Wheels ?? new WheelTelemetry[WheelCount];
             for (var index = 0; index < wheels.Length; index++)
@@ -185,7 +243,9 @@ namespace MotorBound.Vehicle.Physics
                 VehicleName = definition.DisplayName,
                 SpeedMetersPerSecond = body.velocity.magnitude,
                 EngineSpeedRpm = engineSpeedRpm,
-                ForwardGear = forwardGear,
+                EngineRevLimiterActive = engineRevLimiterActive,
+                ForwardGear = SelectedGear,
+                TransmissionMode = TransmissionMode,
                 SimulationFrequencyHertz = Mathf.RoundToInt(1f / Mathf.Max(fixedDeltaTime, 0.0001f)),
                 LocalAccelerationMetersPerSecondSquared = transform.InverseTransformDirection(accelerationWorld),
                 Input = input,
@@ -304,8 +364,12 @@ namespace MotorBound.Vehicle.Physics
 
             var suspensionLength = Mathf.Clamp(contact.Distance - radius, 0f, (float)(suspension.RestLengthMeters + suspension.TravelMeters));
             var compression = Mathf.Max(0f, (float)suspension.RestLengthMeters - suspensionLength);
-            var pointVelocity = body.GetPointVelocity(contact.Point);
-            var suspensionVelocity = Vector3.Dot(pointVelocity, transform.up);
+            var chassisPointVelocity = body.GetPointVelocity(contact.Point);
+            var groundBody = contact.Collider.attachedRigidbody;
+            var groundPointVelocity = groundBody != null ? groundBody.GetPointVelocity(contact.Point) : Vector3.zero;
+            if (!SuspensionKinematics.TryCalculateLengthRate(chassisPointVelocity, groundPointVelocity,
+                transform.up, contact.Normal, out var suspensionVelocity)) return step;
+            var pointVelocity = chassisPointVelocity - groundPointVelocity;
             var damperRate = suspensionVelocity < 0f
                 ? (float)suspension.DamperCompressionNewtonsPerMeterPerSecond
                 : (float)suspension.DamperReboundNewtonsPerMeterPerSecond;
@@ -483,6 +547,28 @@ namespace MotorBound.Vehicle.Physics
 
         private void UpdatePowertrain()
         {
+            var drivenAngularSpeed = AverageDrivenWheelAngularSpeed();
+            var gearRatio = Mathf.Abs((float)gearSelector.GetSelectedGearRatio(definition.Transmission));
+            var coupledRpm = drivenAngularSpeed * gearRatio * (float)definition.Transmission.FinalDriveRatio
+                * (float)UnitConversion.RadiansPerSecondToRevolutionsPerMinute;
+            var launchRpm = (float)definition.Engine.IdleSpeedRpm + (input.Throttle * 900f);
+            if (SelectedGear == 0 || coupledRpm <= definition.Engine.RedlineSpeedRpm - 100d)
+                engineRevLimiterActive = false;
+            else if (coupledRpm >= definition.Engine.RedlineSpeedRpm)
+                engineRevLimiterActive = true;
+            engineSpeedRpm = Mathf.Clamp(Mathf.Max(coupledRpm, launchRpm),
+                (float)definition.Engine.IdleSpeedRpm, (float)definition.Engine.RedlineSpeedRpm);
+            if (gearSelector.Mode != DriveTransmissionMode.Automatic || SelectedGear <= 0) return;
+            var target = SelectedGear;
+            if (engineSpeedRpm >= definition.Transmission.UpshiftSpeedRpm
+                && target < definition.Transmission.ForwardGearRatios.Length) target++;
+            else if (engineSpeedRpm <= definition.Transmission.DownshiftSpeedRpm && target > 1) target--;
+            if (target != SelectedGear)
+                ApplyGearSelection(gearSelector.SelectAutomaticGear(target, definition.Transmission.ForwardGearRatios.Length));
+        }
+
+        private float AverageDrivenWheelAngularSpeed(bool signed = false)
+        {
             var drivenAngularSpeed = 0f;
             var count = 0;
             foreach (var wheel in wheels)
@@ -492,28 +578,11 @@ namespace MotorBound.Vehicle.Physics
                     continue;
                 }
 
-                drivenAngularSpeed += Mathf.Abs(wheel.AngularSpeedRadiansPerSecond);
+                drivenAngularSpeed += signed ? wheel.AngularSpeedRadiansPerSecond : Mathf.Abs(wheel.AngularSpeedRadiansPerSecond);
                 count++;
             }
 
-            drivenAngularSpeed /= Mathf.Max(count, 1);
-            var gearRatio = (float)definition.Transmission.ForwardGearRatios[forwardGear - 1];
-            var coupledRpm = drivenAngularSpeed
-                             * gearRatio
-                             * (float)definition.Transmission.FinalDriveRatio
-                             * (float)UnitConversion.RadiansPerSecondToRevolutionsPerMinute;
-            var launchRpm = (float)definition.Engine.IdleSpeedRpm + (input.Throttle * 900f);
-            engineSpeedRpm = Mathf.Clamp(Mathf.Max(coupledRpm, launchRpm), (float)definition.Engine.IdleSpeedRpm, (float)definition.Engine.RedlineSpeedRpm);
-
-            if (engineSpeedRpm >= definition.Transmission.UpshiftSpeedRpm
-                && forwardGear < definition.Transmission.ForwardGearRatios.Length)
-            {
-                forwardGear++;
-            }
-            else if (engineSpeedRpm <= definition.Transmission.DownshiftSpeedRpm && forwardGear > 1)
-            {
-                forwardGear--;
-            }
+            return drivenAngularSpeed / Mathf.Max(count, 1);
         }
 
         private void ApplyAerodynamics()

@@ -1,0 +1,500 @@
+{
+    "GeneratedUtc": "2026-10-09T15:28:08.8578827Z",
+    "UnityVersion": "2022.3.62f2",
+    "SimulationHertz": 360,
+    "InputHertz": 60,
+    "Scope": "Five stock-vehicle native cases on dry asphalt, one-second settlement, production driver commands and natural acceleration. ResetMotion is tested explicitly, not used to manufacture rolling states.",
+    "Passed": true,
+    "Assertions": 26,
+    "Cases": [
+        {
+            "Name": "Manual second persists; reset retains manual mode",
+            "InitialMode": "Automatic",
+            "FinalMode": "Manual",
+            "FinalSelectionMessage": "First gear selected after motion reset.",
+            "ResetMode": "Manual",
+            "InitialSelectedGear": 1,
+            "FinalSelectedGear": 1,
+            "ResetSelectedGear": 1,
+            "Passed": true,
+            "Actions": [
+                {
+                    "Name": "Toggle manual",
+                    "Mode": "Manual",
+                    "Message": "Manual mode selected.",
+                    "Accepted": true,
+                    "SelectedGear": 1,
+                    "ForwardSpeedMetersPerSecond": -0.009074333123862744
+                },
+                {
+                    "Name": "Shift up to second",
+                    "Mode": "Manual",
+                    "Message": "Manual gear selected.",
+                    "Accepted": true,
+                    "SelectedGear": 2,
+                    "ForwardSpeedMetersPerSecond": -0.009074333123862744
+                }
+            ],
+            "Phases": [
+                {
+                    "Name": "Manual second under W",
+                    "Frames": 480,
+                    "ManualFrames": 480,
+                    "AutomaticFrames": 0,
+                    "ReversePoweredContactFrames": 0,
+                    "FramesWithFewerThanThreeContacts": 0,
+                    "MinimumSelectedGear": 2,
+                    "MaximumSelectedGear": 2,
+                    "Seconds": 8.0,
+                    "Throttle": 1.0,
+                    "Brake": 0.0,
+                    "StartForwardSpeedMetersPerSecond": -0.009074333123862744,
+                    "EndForwardSpeedMetersPerSecond": 27.419340133666993,
+                    "ForwardDisplacementMeters": 117.85089111328125,
+                    "PeakEngineSpeedRpm": 7600.0,
+                    "PeakAbsoluteFrontAxleDriveTorqueNewtonMeters": 0.0,
+                    "PeakAbsoluteRearAxleDriveTorqueNewtonMeters": 1628.8489990234375,
+                    "PeakPositiveRearAxleDriveTorqueNewtonMeters": 1628.8489990234375,
+                    "MinimumRearAngularSpeedRadiansPerSecond": 0.0,
+                    "MinimumRearSlipRatio": 0.0,
+                    "MeanSignedLongitudinalTireForceNewtons": 3951.748046875,
+                    "Snapshots": [
+                        {
+                            "Mode": "Manual",
+                            "SelectedGear": 2,
+                            "Seconds": 0.01666666753590107,
+                            "ForwardSpeedMetersPerSecond": 0.045833002775907519,
+                            "EngineSpeedRpm": 1800.0,
+                            "RearAxleDriveTorqueNewtonMeters": 1193.49951171875,
+                            "RearLeftAngularSpeedRadiansPerSecond": 0.28676146268844607,
+                            "RearRightAngularSpeedRadiansPerSecond": 0.28676146268844607,
+                            "RearLeftSlipRatio": 0.02750626765191555,
+                            "RearRightSlipRatio": 0.02887800708413124
+                        },
+                        {
+                            "Mode": "Manual",
+                            "SelectedGear": 2,
+                            "Seconds": 4.016666889190674,
+                            "ForwardSpeedMetersPerSecond": 14.563780784606934,
+                            "EngineSpeedRpm": 4132.900390625,
+                            "RearAxleDriveTorqueNewtonMeters": 1560.232666015625,
+                            "RearLeftAngularSpeedRadiansPerSecond": 49.599586486816409,
+                            "RearRightAngularSpeedRadiansPerSecond": 49.599586486816409,
+                            "RearLeftSlipRatio": 0.0393492616713047,
+                            "RearRightSlipRatio": 0.03949426859617233
+                        },
+                        {
+                            "Mode": "Manual",
+                            "SelectedGear": 2,
+                            "Seconds": 8.0,
+                            "ForwardSpeedMetersPerSecond": 27.419340133666993,
+                            "EngineSpeedRpm": 7501.5263671875,
+                            "RearAxleDriveTorqueNewtonMeters": 0.0,
+                            "RearLeftAngularSpeedRadiansPerSecond": 89.94927215576172,
+                            "RearRightAngularSpeedRadiansPerSecond": 89.94927215576172,
+                            "RearLeftSlipRatio": 0.0004937733756378293,
+                            "RearRightSlipRatio": 0.0005281531484797597
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Name": "Reverse propulsion and service braking; moving forward guard",
+            "InitialMode": "Automatic",
+            "FinalMode": "Manual",
+            "FinalSelectionMessage": "Stop to 0.5 m/s or less before changing driving direction.",
+            "ResetMode": "",
+            "InitialSelectedGear": 1,
+            "FinalSelectedGear": -1,
+            "ResetSelectedGear": 0,
+            "Passed": true,
+            "Actions": [
+                {
+                    "Name": "Select stopped reverse",
+                    "Mode": "Manual",
+                    "Message": "Manual gear selected.",
+                    "Accepted": true,
+                    "SelectedGear": -1,
+                    "ForwardSpeedMetersPerSecond": -0.009074333123862744
+                },
+                {
+                    "Name": "Reject moving reverse-to-forward",
+                    "Mode": "Manual",
+                    "Message": "Stop to 0.5 m/s or less before changing driving direction.",
+                    "Accepted": false,
+                    "SelectedGear": -1,
+                    "ForwardSpeedMetersPerSecond": -17.175464630126954
+                }
+            ],
+            "Phases": [
+                {
+                    "Name": "Reverse W propulsion",
+                    "Frames": 240,
+                    "ManualFrames": 240,
+                    "AutomaticFrames": 0,
+                    "ReversePoweredContactFrames": 169,
+                    "FramesWithFewerThanThreeContacts": 0,
+                    "MinimumSelectedGear": -1,
+                    "MaximumSelectedGear": -1,
+                    "Seconds": 4.0,
+                    "Throttle": 1.0,
+                    "Brake": 0.0,
+                    "StartForwardSpeedMetersPerSecond": -0.009074333123862744,
+                    "EndForwardSpeedMetersPerSecond": -17.175464630126954,
+                    "ForwardDisplacementMeters": -34.292518615722659,
+                    "PeakEngineSpeedRpm": 7600.0,
+                    "PeakAbsoluteFrontAxleDriveTorqueNewtonMeters": 0.0,
+                    "PeakAbsoluteRearAxleDriveTorqueNewtonMeters": 2536.62890625,
+                    "PeakPositiveRearAxleDriveTorqueNewtonMeters": 0.0,
+                    "MinimumRearAngularSpeedRadiansPerSecond": -58.879005432128909,
+                    "MinimumRearSlipRatio": -11.189003944396973,
+                    "MeanSignedLongitudinalTireForceNewtons": -4840.04345703125,
+                    "Snapshots": [
+                        {
+                            "Mode": "Manual",
+                            "SelectedGear": -1,
+                            "Seconds": 0.01666666753590107,
+                            "ForwardSpeedMetersPerSecond": -0.09380762279033661,
+                            "EngineSpeedRpm": 1800.0,
+                            "RearAxleDriveTorqueNewtonMeters": -1865.8934326171875,
+                            "RearLeftAngularSpeedRadiansPerSecond": -0.6926484704017639,
+                            "RearRightAngularSpeedRadiansPerSecond": -0.6926484704017639,
+                            "RearLeftSlipRatio": -0.07903855293989182,
+                            "RearRightSlipRatio": -0.08000700175762177
+                        },
+                        {
+                            "Mode": "Manual",
+                            "SelectedGear": -1,
+                            "Seconds": 2.016666889190674,
+                            "ForwardSpeedMetersPerSecond": -8.601011276245118,
+                            "EngineSpeedRpm": 7458.22265625,
+                            "RearAxleDriveTorqueNewtonMeters": -2048.727783203125,
+                            "RearLeftAngularSpeedRadiansPerSecond": -57.86821365356445,
+                            "RearRightAngularSpeedRadiansPerSecond": -57.86821365356445,
+                            "RearLeftSlipRatio": -1.0547142028808594,
+                            "RearRightSlipRatio": -1.054970145225525
+                        },
+                        {
+                            "Mode": "Manual",
+                            "SelectedGear": -1,
+                            "Seconds": 4.0,
+                            "ForwardSpeedMetersPerSecond": -17.175464630126954,
+                            "EngineSpeedRpm": 7600.0,
+                            "RearAxleDriveTorqueNewtonMeters": 0.0,
+                            "RearLeftAngularSpeedRadiansPerSecond": -57.04643249511719,
+                            "RearRightAngularSpeedRadiansPerSecond": -57.04643249511719,
+                            "RearLeftSlipRatio": -0.013879392296075821,
+                            "RearRightSlipRatio": -0.013940359465777874
+                        }
+                    ]
+                },
+                {
+                    "Name": "Service brake opposes reverse",
+                    "Frames": 120,
+                    "ManualFrames": 120,
+                    "AutomaticFrames": 0,
+                    "ReversePoweredContactFrames": 0,
+                    "FramesWithFewerThanThreeContacts": 0,
+                    "MinimumSelectedGear": -1,
+                    "MaximumSelectedGear": -1,
+                    "Seconds": 2.0,
+                    "Throttle": 0.0,
+                    "Brake": 1.0,
+                    "StartForwardSpeedMetersPerSecond": -17.175464630126954,
+                    "EndForwardSpeedMetersPerSecond": -2.4106218814849855,
+                    "ForwardDisplacementMeters": -19.558216094970704,
+                    "PeakEngineSpeedRpm": 7043.61328125,
+                    "PeakAbsoluteFrontAxleDriveTorqueNewtonMeters": 0.0,
+                    "PeakAbsoluteRearAxleDriveTorqueNewtonMeters": 546.6661376953125,
+                    "PeakPositiveRearAxleDriveTorqueNewtonMeters": 546.6661376953125,
+                    "MinimumRearAngularSpeedRadiansPerSecond": -53.917537689208987,
+                    "MinimumRearSlipRatio": 0.0,
+                    "MeanSignedLongitudinalTireForceNewtons": 8238.955078125,
+                    "Snapshots": [
+                        {
+                            "Mode": "Manual",
+                            "SelectedGear": -1,
+                            "Seconds": 0.01666666753590107,
+                            "ForwardSpeedMetersPerSecond": -17.06781005859375,
+                            "EngineSpeedRpm": 7043.61328125,
+                            "RearAxleDriveTorqueNewtonMeters": 546.6661376953125,
+                            "RearLeftAngularSpeedRadiansPerSecond": -53.917537689208987,
+                            "RearRightAngularSpeedRadiansPerSecond": -53.917537689208987,
+                            "RearLeftSlipRatio": 0.03595522791147232,
+                            "RearRightSlipRatio": 0.036066025495529178
+                        },
+                        {
+                            "Mode": "Manual",
+                            "SelectedGear": -1,
+                            "Seconds": 1.0166667699813843,
+                            "ForwardSpeedMetersPerSecond": -9.658524513244629,
+                            "EngineSpeedRpm": 4011.58544921875,
+                            "RearAxleDriveTorqueNewtonMeters": 546.6661376953125,
+                            "RearLeftAngularSpeedRadiansPerSecond": -30.703887939453126,
+                            "RearRightAngularSpeedRadiansPerSecond": -30.703887939453126,
+                            "RearLeftSlipRatio": 0.032696980983018878,
+                            "RearRightSlipRatio": 0.03291599452495575
+                        },
+                        {
+                            "Mode": "Manual",
+                            "SelectedGear": -1,
+                            "Seconds": 2.0,
+                            "ForwardSpeedMetersPerSecond": -2.4106218814849855,
+                            "EngineSpeedRpm": 1013.25830078125,
+                            "RearAxleDriveTorqueNewtonMeters": 546.6661376953125,
+                            "RearLeftAngularSpeedRadiansPerSecond": -7.706007957458496,
+                            "RearRightAngularSpeedRadiansPerSecond": -7.706007957458496,
+                            "RearLeftSlipRatio": 0.0327216237783432,
+                            "RearRightSlipRatio": 0.03410050645470619
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Name": "Neutral has no net axle drive torque",
+            "InitialMode": "Automatic",
+            "FinalMode": "Manual",
+            "FinalSelectionMessage": "Manual gear selected.",
+            "ResetMode": "",
+            "InitialSelectedGear": 1,
+            "FinalSelectedGear": 0,
+            "ResetSelectedGear": 0,
+            "Passed": true,
+            "Actions": [
+                {
+                    "Name": "Shift down first-to-neutral",
+                    "Mode": "Manual",
+                    "Message": "Manual gear selected.",
+                    "Accepted": true,
+                    "SelectedGear": 0,
+                    "ForwardSpeedMetersPerSecond": -0.009074333123862744
+                }
+            ],
+            "Phases": [
+                {
+                    "Name": "Neutral under W",
+                    "Frames": 240,
+                    "ManualFrames": 240,
+                    "AutomaticFrames": 0,
+                    "ReversePoweredContactFrames": 0,
+                    "FramesWithFewerThanThreeContacts": 0,
+                    "MinimumSelectedGear": 0,
+                    "MaximumSelectedGear": 0,
+                    "Seconds": 4.0,
+                    "Throttle": 1.0,
+                    "Brake": 0.0,
+                    "StartForwardSpeedMetersPerSecond": -0.009074333123862744,
+                    "EndForwardSpeedMetersPerSecond": -0.009049814194440842,
+                    "ForwardDisplacementMeters": -0.036220185458660129,
+                    "PeakEngineSpeedRpm": 1800.0,
+                    "PeakAbsoluteFrontAxleDriveTorqueNewtonMeters": 0.0,
+                    "PeakAbsoluteRearAxleDriveTorqueNewtonMeters": 0.0,
+                    "PeakPositiveRearAxleDriveTorqueNewtonMeters": 0.0,
+                    "MinimumRearAngularSpeedRadiansPerSecond": -0.029918096959590913,
+                    "MinimumRearSlipRatio": -0.00020972549100406468,
+                    "MeanSignedLongitudinalTireForceNewtons": 1.2373778820037842,
+                    "Snapshots": [
+                        {
+                            "Mode": "Manual",
+                            "SelectedGear": 0,
+                            "Seconds": 0.01666666753590107,
+                            "ForwardSpeedMetersPerSecond": -0.009078750386834145,
+                            "EngineSpeedRpm": 1800.0,
+                            "RearAxleDriveTorqueNewtonMeters": 0.0,
+                            "RearLeftAngularSpeedRadiansPerSecond": -0.028817081823945047,
+                            "RearRightAngularSpeedRadiansPerSecond": -0.028817081823945047,
+                            "RearLeftSlipRatio": -0.00020892699831165373,
+                            "RearRightSlipRatio": 0.00020891522581223398
+                        },
+                        {
+                            "Mode": "Manual",
+                            "SelectedGear": 0,
+                            "Seconds": 2.016666889190674,
+                            "ForwardSpeedMetersPerSecond": -0.009049241431057454,
+                            "EngineSpeedRpm": 1800.0,
+                            "RearAxleDriveTorqueNewtonMeters": 0.0,
+                            "RearLeftAngularSpeedRadiansPerSecond": -0.029828345403075219,
+                            "RearRightAngularSpeedRadiansPerSecond": -0.029828345403075219,
+                            "RearLeftSlipRatio": -0.00020899901574011892,
+                            "RearRightSlipRatio": 0.00020898663206025958
+                        },
+                        {
+                            "Mode": "Manual",
+                            "SelectedGear": 0,
+                            "Seconds": 4.0,
+                            "ForwardSpeedMetersPerSecond": -0.009049814194440842,
+                            "EngineSpeedRpm": 1800.0,
+                            "RearAxleDriveTorqueNewtonMeters": 0.0,
+                            "RearLeftAngularSpeedRadiansPerSecond": -0.02983020432293415,
+                            "RearRightAngularSpeedRadiansPerSecond": -0.02983020432293415,
+                            "RearLeftSlipRatio": 0.00020898663206025958,
+                            "RearRightSlipRatio": -0.00020899901574011892
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Name": "Moving reverse selection rejects without gear or mode change",
+            "InitialMode": "Automatic",
+            "FinalMode": "Automatic",
+            "FinalSelectionMessage": "Stop to 0.5 m/s or less before changing driving direction.",
+            "ResetMode": "",
+            "InitialSelectedGear": 1,
+            "FinalSelectedGear": 1,
+            "ResetSelectedGear": 0,
+            "Passed": true,
+            "Actions": [
+                {
+                    "Name": "Reject moving forward-to-reverse",
+                    "Mode": "Automatic",
+                    "Message": "Stop to 0.5 m/s or less before changing driving direction.",
+                    "Accepted": false,
+                    "SelectedGear": 1,
+                    "ForwardSpeedMetersPerSecond": 14.096962928771973
+                }
+            ],
+            "Phases": [
+                {
+                    "Name": "Forward W before reverse request",
+                    "Frames": 180,
+                    "ManualFrames": 0,
+                    "AutomaticFrames": 180,
+                    "ReversePoweredContactFrames": 0,
+                    "FramesWithFewerThanThreeContacts": 0,
+                    "MinimumSelectedGear": 1,
+                    "MaximumSelectedGear": 1,
+                    "Seconds": 3.000000238418579,
+                    "Throttle": 1.0,
+                    "Brake": 0.0,
+                    "StartForwardSpeedMetersPerSecond": -0.009074333123862744,
+                    "EndForwardSpeedMetersPerSecond": 14.096962928771973,
+                    "ForwardDisplacementMeters": 21.024168014526368,
+                    "PeakEngineSpeedRpm": 6682.98583984375,
+                    "PeakAbsoluteFrontAxleDriveTorqueNewtonMeters": 0.0,
+                    "PeakAbsoluteRearAxleDriveTorqueNewtonMeters": 1723.333251953125,
+                    "PeakPositiveRearAxleDriveTorqueNewtonMeters": 1723.333251953125,
+                    "MinimumRearAngularSpeedRadiansPerSecond": 0.0,
+                    "MinimumRearSlipRatio": 0.0,
+                    "MeanSignedLongitudinalTireForceNewtons": 5328.2255859375,
+                    "Snapshots": [
+                        {
+                            "Mode": "Automatic",
+                            "SelectedGear": 1,
+                            "Seconds": 0.01666666753590107,
+                            "ForwardSpeedMetersPerSecond": 0.06209954246878624,
+                            "EngineSpeedRpm": 1800.0,
+                            "RearAxleDriveTorqueNewtonMeters": 1607.537841796875,
+                            "RearLeftAngularSpeedRadiansPerSecond": 0.41887223720550539,
+                            "RearRightAngularSpeedRadiansPerSecond": 0.41887223720550539,
+                            "RearLeftSlipRatio": 0.043845824897289279,
+                            "RearRightSlipRatio": 0.04545876011252403
+                        },
+                        {
+                            "Mode": "Automatic",
+                            "SelectedGear": 1,
+                            "Seconds": 1.5166667699813843,
+                            "ForwardSpeedMetersPerSecond": 7.070937633514404,
+                            "EngineSpeedRpm": 3345.802001953125,
+                            "RearAxleDriveTorqueNewtonMeters": 1708.3333740234375,
+                            "RearLeftAngularSpeedRadiansPerSecond": 24.193225860595704,
+                            "RearRightAngularSpeedRadiansPerSecond": 24.193225860595704,
+                            "RearLeftSlipRatio": 0.045191239565610889,
+                            "RearRightSlipRatio": 0.04551691934466362
+                        },
+                        {
+                            "Mode": "Automatic",
+                            "SelectedGear": 1,
+                            "Seconds": 3.000000238418579,
+                            "ForwardSpeedMetersPerSecond": 14.096962928771973,
+                            "EngineSpeedRpm": 6682.98583984375,
+                            "RearAxleDriveTorqueNewtonMeters": 1707.7066650390625,
+                            "RearLeftAngularSpeedRadiansPerSecond": 48.26560592651367,
+                            "RearRightAngularSpeedRadiansPerSecond": 48.26560592651367,
+                            "RearLeftSlipRatio": 0.045157384127378467,
+                            "RearRightSlipRatio": 0.044996485114097598
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Name": "Automatic transmission still upshifts",
+            "InitialMode": "Automatic",
+            "FinalMode": "Automatic",
+            "FinalSelectionMessage": "Automatic gear selected.",
+            "ResetMode": "",
+            "InitialSelectedGear": 1,
+            "FinalSelectedGear": 4,
+            "ResetSelectedGear": 0,
+            "Passed": true,
+            "Actions": [],
+            "Phases": [
+                {
+                    "Name": "Automatic W acceleration",
+                    "Frames": 720,
+                    "ManualFrames": 0,
+                    "AutomaticFrames": 720,
+                    "ReversePoweredContactFrames": 0,
+                    "FramesWithFewerThanThreeContacts": 0,
+                    "MinimumSelectedGear": 1,
+                    "MaximumSelectedGear": 4,
+                    "Seconds": 12.000000953674317,
+                    "Throttle": 1.0,
+                    "Brake": 0.0,
+                    "StartForwardSpeedMetersPerSecond": -0.009074333123862744,
+                    "EndForwardSpeedMetersPerSecond": 41.093257904052737,
+                    "ForwardDisplacementMeters": 289.5311584472656,
+                    "PeakEngineSpeedRpm": 7095.2197265625,
+                    "PeakAbsoluteFrontAxleDriveTorqueNewtonMeters": 0.0,
+                    "PeakAbsoluteRearAxleDriveTorqueNewtonMeters": 1723.333251953125,
+                    "PeakPositiveRearAxleDriveTorqueNewtonMeters": 1723.333251953125,
+                    "MinimumRearAngularSpeedRadiansPerSecond": 0.0,
+                    "MinimumRearSlipRatio": 0.0,
+                    "MeanSignedLongitudinalTireForceNewtons": 4105.4052734375,
+                    "Snapshots": [
+                        {
+                            "Mode": "Automatic",
+                            "SelectedGear": 1,
+                            "Seconds": 0.01666666753590107,
+                            "ForwardSpeedMetersPerSecond": 0.06209954246878624,
+                            "EngineSpeedRpm": 1800.0,
+                            "RearAxleDriveTorqueNewtonMeters": 1607.537841796875,
+                            "RearLeftAngularSpeedRadiansPerSecond": 0.41887223720550539,
+                            "RearRightAngularSpeedRadiansPerSecond": 0.41887223720550539,
+                            "RearLeftSlipRatio": 0.043845824897289279,
+                            "RearRightSlipRatio": 0.04545876011252403
+                        },
+                        {
+                            "Mode": "Automatic",
+                            "SelectedGear": 3,
+                            "Seconds": 6.016666889190674,
+                            "ForwardSpeedMetersPerSecond": 26.493091583251954,
+                            "EngineSpeedRpm": 5160.96240234375,
+                            "RearAxleDriveTorqueNewtonMeters": 1127.837646484375,
+                            "RearLeftAngularSpeedRadiansPerSecond": 89.0936279296875,
+                            "RearRightAngularSpeedRadiansPerSecond": 89.0936279296875,
+                            "RearLeftSlipRatio": 0.025874601677060128,
+                            "RearRightSlipRatio": 0.025937099009752275
+                        },
+                        {
+                            "Mode": "Automatic",
+                            "SelectedGear": 4,
+                            "Seconds": 12.000000953674317,
+                            "ForwardSpeedMetersPerSecond": 41.093257904052737,
+                            "EngineSpeedRpm": 6235.06787109375,
+                            "RearAxleDriveTorqueNewtonMeters": 862.2869262695313,
+                            "RearLeftAngularSpeedRadiansPerSecond": 137.30404663085938,
+                            "RearRightAngularSpeedRadiansPerSecond": 137.30404663085938,
+                            "RearLeftSlipRatio": 0.019171783700585367,
+                            "RearRightSlipRatio": 0.019138289615511895
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "Failures": []
+}

@@ -44,17 +44,19 @@ namespace MotorBound.Product
             GUILayout.Space(6f);
             GUILayout.Label(
                 string.Format(
-                    "{0,6:0.0} km/h  |  {1,5:0} rpm  |  Gear {2}  |  Grounded {3}/4",
+                    "{0:0.0} mph / {1:0.0} km/h  |  {2,5:0} rpm  |  {3}",
+                    UnitConversion.ToMilesPerHour(telemetry.SpeedMetersPerSecond),
                     UnitConversion.ToKilometersPerHour(telemetry.SpeedMetersPerSecond),
                     telemetry.EngineSpeedRpm,
-                    telemetry.ForwardGear,
-                    telemetry.GroundedWheelCount),
+                    GearLabel(telemetry.ForwardGear)),
                 bodyStyle);
             GUILayout.Label(
                 string.Format(
-                    "Critical-vehicle step {0} Hz  |  three-ray contact patch target",
-                    telemetry.SimulationFrequencyHertz),
+                    "{0} transmission  |  Grounded {1}/4  |  Physics {2} Hz",
+                    controller.TransmissionMode, telemetry.GroundedWheelCount, telemetry.SimulationFrequencyHertz),
                 bodyStyle);
+            GUILayout.Label(controller.GearSelectionMessage, bodyStyle);
+            if (telemetry.EngineRevLimiterActive) GUILayout.Label("REV LIMITER / propulsion cut — shift up", bodyStyle);
             GUILayout.Label(
                 string.Format(
                     "Throttle {0:0.00}  Brake {1:0.00}  Steer {2:+0.00;-0.00;0.00}  Handbrake {3:0.00}",
@@ -111,6 +113,7 @@ namespace MotorBound.Product
 
             GUILayout.Space(10f);
             GUILayout.Label("W throttle  |  S brake  |  A/D steer  |  Space handbrake", bodyStyle);
+            GUILayout.Label("Q/E shift down/up (manual)  |  M auto/manual  |  R reverse/first when stopped", bodyStyle);
             GUILayout.Label("Backspace recover  |  F1 telemetry  |  F2 Road / Sport / Off", bodyStyle);
             GUILayout.Label("Sport: Space in a turn initiates; release, feather W, countersteer.", bodyStyle);
             GUILayout.EndArea();
@@ -126,6 +129,11 @@ namespace MotorBound.Product
                 case DriverAssistPhase.Unassisted: return "unassisted";
                 default: return "road grip";
             }
+        }
+
+        public static string GearLabel(int selectedGear)
+        {
+            return selectedGear < 0 ? "Gear R" : selectedGear == 0 ? "Gear N" : "Gear " + selectedGear;
         }
 
         private void EnsureStyles()

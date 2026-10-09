@@ -1,0 +1,112 @@
+{
+  "Date": "2026-10-09",
+  "PlayerVersion": "0.2.6",
+  "UnityVersion": "2022.3.62f2",
+  "NativeEditModeTests": { "Total": 336, "Passed": 336, "Failed": 0, "Skipped": 0 },
+  "DomainVerificationChecks": { "Total": 15, "Passed": 15 },
+  "MechanicsCorrections": [
+    "Actual suspension-ray extension rate uses contact-normal-relative chassis/ground motion, not the tilted chassis-up projection of horizontal travel.",
+    "Engine drag opposes actual signed driven carrier rotation. Traction control scales propulsion only, not passive engine drag.",
+    "Authored tire grip, sliding tail, suspension rates, CG, chassis angular drag and steering parameters are unchanged. No random spin or added yaw force."
+  ],
+  "Controls": {
+    "Q": "Shift down; accepted requests enter Manual. First-to-neutral is allowed while moving; drive engagement from neutral/reverse is stopped-only.",
+    "E": "Shift up; accepted requests enter Manual.",
+    "M": "Toggle Automatic/Manual without changing selected gear or direction.",
+    "R": "Stopped reverse/first selector at world-speed magnitude at or below 0.5 m/s.",
+    "W": "Throttle in forward and reverse.",
+    "S": "Service brake in forward and reverse.",
+    "F2": "Road/Sport/Off assistance; Sport is default.",
+    "Neutral": "No propulsion or engine braking transmitted to axles.",
+    "Reset": "First gear, preserving chosen transmission mode.",
+    "DownshiftSafety": "Reject manual downshift before mode/gear mutation if inferred coupled RPM would exceed redline.",
+    "RevLimiter": "Propulsion cut at redline, released 100 RPM below; algebraic engine model, not an integrated clutch."
+  },
+  "NativeHighway": {
+    "Scenarios": 66,
+    "Assertions": 382,
+    "Passed": true,
+    "Scope": "Stock50/70/90 mph and touring70 mph; gentle0.3g, severe full-steer/reversal, power/lift/brake, left/right and assistance comparisons. Natural engine acceleration; production input60Hz and physics360Hz; no moving velocity/yaw teleportation.",
+    "StockOffNear70MphRightGentleMaximumOverallBodySideslipDegrees": 0.53545,
+    "StockOffNear70MphRightGentleLoadedFrontAndRearPostPeakSeconds": 0,
+    "StockOffNear70MphRightSharpCoastMaximumTurnBodySideslipDegrees": 9.57385,
+    "StockOffNear70MphRightReversalMaximumTurnBodySideslipDegrees": 20.50554,
+    "StockOffNear70MphRightReversalMaximumOverallBodySideslipDegrees": 134.5162,
+    "Interpretation": "Ordinary turning remains composed; severe inputs can produce genuine loaded tire sliding and post-release spin. A front skid/wide arc does not guarantee rear spin. Baseline0.2.5 already had tire limits and could spin.",
+    "Report": "artifacts/highway-validation.json",
+    "PreCorrectionReport": "artifacts/highway-baseline-025.json"
+  },
+  "NativeGears": {
+    "Scenarios": 5,
+    "Assertions": 26,
+    "Passed": true,
+    "Scope": "Manual hold/reset; physical reverse travel, negative wheel/axle rotation and service braking; neutral zero axle torque; moving direction-selection rejection; retained automatic upshifts.",
+    "Report": "artifacts/gear-validation.json"
+  },
+  "NativeCornering": { "Scenarios": 70, "Assertions": 502, "Passed": true, "Report": "artifacts/cornering-validation.json" },
+  "NativeDriving": {
+    "Scenarios": 16,
+    "Assertions": 267,
+    "Passed": true,
+    "MeanControllerAndPhysicsStepMicrosecondsRange": [84.53447837150127, 94.93972222222222],
+    "MaximumSteeringInputCenteringSeconds": 0.0833333358168602,
+    "MaximumAbsoluteReleaseYawAt500MillisecondsDegreesPerSecond": 1.0051450729370117,
+    "MaximumAbsoluteReleaseYawAt1SecondDegreesPerSecond": 0.04789969325065613,
+    "HalfSecondAcceptanceChange": "Nominal1deg/s target now has explicit0.05deg/s engineering margin (threshold1.05). Raw readings remain recorded; strict1-second1deg/s threshold unchanged. This is not proven sampling/floating-point error and not a runtime tuning change.",
+    "Report": "artifacts/driving-validation.json"
+  },
+  "NativeSlideMechanics": {
+    "Scenarios": 44,
+    "Assertions": 256,
+    "Passed": true,
+    "RequiredPhysicalSlideCases": 28,
+    "RequiredPhysicalSlideCasesPassed": 28,
+    "MinimumRequiredContinuousSlideSecondsObserved": 3.000000238418579,
+    "MinimumHoldRequestedCountersteeringFramesObserved": 80,
+    "MinimumHoldAppliedCountersteeringFramesObserved": 80,
+    "RequiredVirtualDriverHandbrakeCases": 16,
+    "RequiredOffPowerOnlyCases": 8,
+    "RequiredDigitalKeyboardCases": 4,
+    "CompletedPhysicalSlideOutcomes": 36,
+    "DiagnosticIdenticalOpenLoopCasesWithoutFullPhysicalSlideOutcome": 8,
+    "TestDriverChange": "Only50km/hVirtualDriver bounded throttle feedback adjusted to pursue existing sideslip target before feathering. Steering law, production physics,28strict cases and actual-countersteering acceptance unchanged. Explicitly tagged in per-case report.",
+    "Scope": "Dry-road native Rigidbody/tire/drivetrain simulation; physical entry, controlled hold, powered rear slip, requested/applied countersteering and recovery without reset. Acceptance requires1second; all strict cases observed3seconds. Entry targets are not maintained slide speeds. Virtual driver is test-only. Wet drift and human feel unverified.",
+    "Report": "artifacts/slide-validation.json",
+    "RawTrace": "artifacts/slide-validation-traces.json",
+    "RawTraceIgnoredByGit": true
+  },
+  "WindowsBuild": {
+    "Succeeded": true,
+    "SummaryBytes": 91832450,
+    "Executable": "Builds/Windows/0.2.6/MotorBoundVehiclePrototype.exe",
+    "OlderBuildFoldersNotOverwritten": true,
+    "VehiclePhysicsAssemblySha256": "A562E78A8C811621F9B3E8F3B8F8578A7EC3342E0E60ECE0992AC5BFF84F4D2D",
+    "ProductAssemblySha256": "8A4495C9EFAD89FA326DE6CB015DB2D4E1164B6B1D09AFB9B774A4C06C92802D"
+  },
+  "HeadlessPlayerCheck": {
+    "Attempted": true,
+    "DurationSeconds": 12,
+    "LoadedAssembliesAndScene": true,
+    "ManagedExceptionsObserved": false,
+    "GraphicsDevice": "Null",
+    "ShaderSupportDiagnosticsObserved": true,
+    "Log": "Builds/Windows/0.2.6/startup-smoke.log",
+    "TestProcessId": 958952,
+    "StoppedOnlyVerifiedIsolatedTestProcess": true,
+    "SaveExistedBefore": false,
+    "SaveExistedAfter": false,
+    "Limitation": "Null-graphics shader support diagnostics are expected. This does not verify rendering, startup visuals, actual key events or subjective human driving feel."
+  },
+  "RenderedPlayerCheck": { "Attempted": false, "Verified": false },
+  "SharedReportHistory": "Driving/cornering/slide paths contain0.2.6. Prior0.2.5 evidence remains at Git commit7444c01 and vehicle-mechanics-release-validation.json.",
+  "ArchitectureLimitations": [
+    "Engine RPM/launch and shifting remain algebraic; no engine/transmission clutch inertia, synchronization, stalling, clutch-kick or shift-duration simulation.",
+    "Reverse road traction control is not implemented; forward propulsion assistance remains explicit.",
+    "Small-slip lateral tire stiffness is not calibrated against load; tire relaxation, wear, temperature, pressure and measured-data calibration remain deferred.",
+    "No measured axle-specific anti-roll/camber/Ackermann geometry or calibrated chassis inertia.",
+    "Moving ground velocity is observed, but dynamic platforms do not receive equal/opposite vehicle reaction forces.",
+    "AWD has equal center torque distribution, not a center differential model.",
+    "Rolling-resistance/contact-reaction energy balance still needs separate calibration.",
+    "No added yaw, automatic steering, grip override, brake-to-drift or maintained-speed drift force."
+  ]
+}

@@ -31,7 +31,10 @@ namespace MotorBound.Vehicle.Physics
         public string VehicleName;
         public float SpeedMetersPerSecond;
         public float EngineSpeedRpm;
+        public bool EngineRevLimiterActive;
+        // Historical field name retained: -1 is reverse, 0 neutral, 1..N forward.
         public int ForwardGear;
+        public DriveTransmissionMode TransmissionMode;
         public int SimulationFrequencyHertz;
         public Vector3 LocalAccelerationMetersPerSecondSquared;
         public VehicleInputState Input;

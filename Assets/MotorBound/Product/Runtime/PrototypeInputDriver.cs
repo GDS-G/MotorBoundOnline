@@ -48,6 +48,10 @@ namespace MotorBound.Product
             var brake = Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow) ? 1f : 0f;
             var handbrake = Input.GetKey(KeyCode.Space) ? 1f : 0f;
             if (DrivingEnabled && Input.GetKeyDown(KeyCode.F2)) CycleDriverAssistMode();
+            if (Input.GetKeyDown(KeyCode.E)) ShiftUp();
+            if (Input.GetKeyDown(KeyCode.Q)) ShiftDown();
+            if (Input.GetKeyDown(KeyCode.R)) ToggleReverse();
+            if (Input.GetKeyDown(KeyCode.M)) ToggleTransmissionMode();
             ApplyInput(new VehicleInputState(throttle, brake, steeringTarget, handbrake), Time.deltaTime);
 
             if (DrivingEnabled && Input.GetKeyDown(KeyCode.Backspace))
@@ -68,6 +72,11 @@ namespace MotorBound.Product
             controller.AssistMode = controller.AssistMode == DriverAssistMode.Road ? DriverAssistMode.Sport
                 : controller.AssistMode == DriverAssistMode.Sport ? DriverAssistMode.Off : DriverAssistMode.Road;
         }
+
+        public bool ShiftUp() => controller != null && DrivingEnabled && controller.TryShiftGear(1);
+        public bool ShiftDown() => controller != null && DrivingEnabled && controller.TryShiftGear(-1);
+        public bool ToggleReverse() => controller != null && DrivingEnabled && controller.TryToggleReverse();
+        public bool ToggleTransmissionMode() => controller != null && DrivingEnabled && controller.ToggleTransmissionMode();
 
         // The live keyboard path and native driving checks share the same response.
         public void ApplyInput(VehicleInputState requestedInput, float deltaTimeSeconds)

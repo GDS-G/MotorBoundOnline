@@ -224,7 +224,15 @@ namespace MotorBound.Vehicle.Core
                 Require(Transmission.EngineeringFamilyRevision > 0, "transmission.engineeringFamilyRevision", "Transmission engineering-family revision must be positive.", issues);
                 Require(!Transmission.AssemblySpecificationId.IsEmpty, "transmission.assemblySpecificationId", "A stable transmission assembly-specification ID is required.", issues);
                 Require(Transmission.ForwardGearRatios != null && Transmission.ForwardGearRatios.Length > 0, "transmission.forwardGearRatios", "At least one forward gear is required.", issues);
-                Require(Transmission.FinalDriveRatio > 0d, "transmission.finalDriveRatio", "Final drive ratio must be positive.", issues);
+                if (Transmission.ForwardGearRatios != null)
+                    for (var index = 0; index < Transmission.ForwardGearRatios.Length; index++)
+                        Require(IsFiniteNonnegative(Transmission.ForwardGearRatios[index]) && Transmission.ForwardGearRatios[index] > 0d,
+                            "transmission.forwardGearRatios[" + index + "]", "Forward gear ratios must be finite and positive.", issues);
+                Require(!double.IsNaN(Transmission.ReverseGearRatio) && !double.IsInfinity(Transmission.ReverseGearRatio)
+                        && Transmission.ReverseGearRatio < 0d,
+                    "transmission.reverseGearRatio", "Reverse gear ratio must be finite and negative.", issues);
+                Require(IsFiniteNonnegative(Transmission.FinalDriveRatio) && Transmission.FinalDriveRatio > 0d,
+                    "transmission.finalDriveRatio", "Final drive ratio must be finite and positive.", issues);
                 Require(Transmission.Efficiency > 0d && Transmission.Efficiency <= 1d, "transmission.efficiency", "Efficiency must be in (0, 1].", issues);
             }
 
